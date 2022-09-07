@@ -1,6 +1,7 @@
-from db.db import db
-from utils import BaseModel
 from flask_security import RoleMixin
+
+from db.db import db
+from models.utils import BaseModel
 
 
 class Role(BaseModel, RoleMixin):

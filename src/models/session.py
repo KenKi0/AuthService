@@ -1,6 +1,7 @@
 from datetime import datetime
+
 from db.db import db
-from utils import BaseModel
+from models.utils import BaseModel
 
 
 class Session(BaseModel):
