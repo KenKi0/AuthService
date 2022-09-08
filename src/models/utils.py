@@ -1,14 +1,19 @@
 import uuid
+
+from sqlalchemy.dialects.postgresql import UUID
+
 from db.db import db
-
-
-def generate_uuid():
-    return str(uuid.uuid4())
 
 
 class BaseModel(db.Model):
     __table_args__ = {'schema': 'auth'}
-    id = db.Column(db.String, primary_key=True, default=generate_uuid, unique=True, nullable=False)
+    id = db.Column(  # noqa: VNE003
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        unique=True,
+        nullable=False,
+    )
 
     def set(self) -> None:
         try:
