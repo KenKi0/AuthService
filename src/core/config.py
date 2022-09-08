@@ -1,3 +1,4 @@
+from datetime import timedelta
 from logging import config as logging_config
 from pathlib import Path
 
@@ -43,6 +44,8 @@ class PostgresSettings(BaseConfig):
 
 class ProjectSettings(BaseConfig):
 
+    REFRESH_TOKEN_EXP_DELTA = timedelta(days=10)
+    ACCESS_TOKEN_EXP_DELTA = timedelta(minutes=20)
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
 
