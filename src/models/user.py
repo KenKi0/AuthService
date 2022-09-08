@@ -14,10 +14,9 @@ class User(BaseModel, UserMixin):
     user_agent = db.Column(db.String, nullable=False)
     active = db.Column(db.Boolean(), nullable=False)
     roles = db.Column(db.ARRAY(db.String), nullable=False)
+    is_super = db.Column(db.Boolean(), default=False)
     create_at = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
-    updated_at = db.Column(
-        db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False
-    )
+    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
 
     def __repr__(self) -> str:
         return f'User: {self.username} {self.id}'
