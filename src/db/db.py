@@ -11,5 +11,6 @@ def init_db(app: Flask) -> None:
     Подключение к БД.
     :param app: Flask
     """
-    app.config['SQL_DB'] = settings.postgres.uri()
+    app.config['SECRET_KEY'] = settings.postgres.uri()
+    app.config['SQLALCHEMY_DATABASE_URI'] = settings.postgres.uri()
     db.init_app(app)

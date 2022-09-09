@@ -44,8 +44,9 @@ class PostgresSettings(BaseConfig):
 
 class ProjectSettings(BaseConfig):
 
-    REFRESH_TOKEN_EXP_DELTA = timedelta(days=10)
-    ACCESS_TOKEN_EXP_DELTA = timedelta(minutes=20)
+    SECRET: str = '245585dbb5cbe2f151742298d61d364880575bff0bdcbf4ae383f0180e7e47dd'
+    REFRESH_TOKEN_EXP_DELTA: timedelta = timedelta(days=10)
+    ACCESS_TOKEN_EXP_DELTA: timedelta = timedelta(minutes=20)
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
 
