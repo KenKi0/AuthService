@@ -1,9 +1,8 @@
-from datetime import datetime
-
-from flask_security import UserMixin
+from flask_security import SQLAlchemyUserDatastore, UserMixin
 from sqlalchemy import String
 
 from db.db import db
+from models.role import Role
 from models.utils import BaseModel
 
 
@@ -16,8 +15,9 @@ class User(BaseModel, UserMixin):
     active = db.Column(db.Boolean(), nullable=False)
     roles = db.Column(db.ARRAY(String), nullable=False)
     is_super = db.Column(db.Boolean(), default=False)
-    create_at = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
-    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
 
     def __repr__(self) -> str:
         return f'User: {self.username} {self.id}'
+
+
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)

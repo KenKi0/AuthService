@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -14,11 +15,13 @@ class BaseModel(db.Model):
         unique=True,
         nullable=False,
     )
+    create_at = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
+    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
 
     def set(self) -> None:
         try:
             db.session.add(self)
             db.session.commit()
         # TODO определить какой будет Exception, обработать его
-        except Exception as ex:
-            raise ex
+        except Exception:
+            raise
