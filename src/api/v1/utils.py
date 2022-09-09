@@ -13,11 +13,8 @@ from flask_jwt_extended import (
 from core.config import settings
 from models.user import User
 
-access_token_exp = settings.ACCESS_TOKEN_EXP_DELTA
-refresh_token_exp = settings.REFRESH_TOKEN_EXP_DELTA
 
-
-def get_tokens(user_id, token=None):
+def get_tokens(user_id, token: dict = None):
     """
     Получение | Обновление пользователем access_token и refresh_token.
     :param user_id: id пользователя.
@@ -41,12 +38,12 @@ def get_tokens(user_id, token=None):
     access_token = create_access_token(
         identity=user_id,
         additional_claims=additional_claims,
-        expires_delta=access_token_exp,
+        expires_delta=settings.ACCESS_TOKEN_EXP_DELTA,
     )
     refresh_token = create_refresh_token(
         identity=user_id,
         additional_claims=additional_claims,
-        expires_delta=refresh_token_exp,
+        expires_delta=settings.REFRESH_TOKEN_EXP_DELTA,
     )
     return access_token, refresh_token
 
