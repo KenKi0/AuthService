@@ -14,7 +14,6 @@ class User(BaseModel, UserMixin):
     password = db.Column(db.String(length=150), nullable=False)
     email = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     active = db.Column(db.Boolean(), nullable=False)
-    roles = db.relationship('Role', secondary='auth.users_roles', lazy='subquery', back_populates='users')
     is_super = db.Column(db.Boolean(), default=False)
     salt = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
 

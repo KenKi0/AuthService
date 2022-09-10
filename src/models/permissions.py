@@ -8,7 +8,6 @@ class Permission(BaseModel):
     __tablename__ = 'permissions'
     name = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     description = db.Column(db.String(length=150), nullable=False)
-    roles = db.relationship('Role', secondary='auth.roles_permissions', lazy='subquery', back_populates='permissions')
 
     def __repr__(self) -> str:
         return f'Role: {self.name} {self.id}'
