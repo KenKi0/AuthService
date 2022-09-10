@@ -9,18 +9,17 @@ from models.utils import BaseModel
 class Session(BaseModel):
     __tablename__ = 'sessions'
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'), nullable=False)
-    refresh_token = db.Column(db.String, nullable=False)
-    updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
+    device_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.allowed_device.id'), nullable=False)
+    auth_date = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
 
     def __repr__(self) -> str:
-        return f'Session: {self.id}'
+        return f'Session: {self.id} {self.auth_date}'
 
 
-class LoginInfo(BaseModel):
-    __tablename__ = 'login_info'
+class AllowedDevice(BaseModel):
+    __tablename__ = 'allowed_device'
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'), nullable=False)
     user_agent = db.Column(db.String, nullable=False)
-    date = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
 
     def __repr__(self) -> str:
-        return f'Login: {self.id} {self.date}'
+        return f'Device: {self.id}'
