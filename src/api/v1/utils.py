@@ -11,7 +11,26 @@ from flask_jwt_extended import (
 )
 
 from core.config import settings
+from db.db import db
+from models.permissions import Permission, RolePermission
+from models.role import RoleUser
 from models.user import User
+
+
+def get_user_permissions(user_id) -> list[str]:
+    """
+    Получение всех прав пользователя.
+    :param user_id: id пользователя.
+    :return permissions: Query прав.
+    """
+    permissions = (
+        db.session.query(Permission)
+        .join(RolePermission)
+        .join(RoleUser, RoleUser.role_id == RolePermission.role_id)
+        .filter(RoleUser.user_id == user_id)
+        .all()
+    )
+    return [permission.name for permission in permissions]
 
 
 def get_tokens(user_id, token: dict = None):
@@ -22,17 +41,17 @@ def get_tokens(user_id, token: dict = None):
     :return access_token, refresh_token: Токены.
     """
     if token:
-        roles = token.get('roles', [])
+        permissions = token.get('permissions', [])
         is_super = token.get('is_super', False)
     else:
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise ValueError('[-] Пользователя не существует.')
-        roles = user.roles
+        permissions = get_user_permissions(user_id)
         is_super = user.is_super
 
     additional_claims = {
-        'roles': roles,
+        'permissions': permissions,
         'is_super': is_super,
     }
     access_token = create_access_token(
@@ -48,7 +67,7 @@ def get_tokens(user_id, token: dict = None):
     return access_token, refresh_token
 
 
-def check_permission(role: str):
+def check_permission(permission: str):
     """
     Проверка наличия прав для доступа.
     :param role: Необходимая роль для доступа.
@@ -64,9 +83,9 @@ def check_permission(role: str):
             user = kwargs.get('user_id')
             is_owner = current_user == user
             is_super = claims.get('is_super', False)
-            roles = claims.get('roles')
+            permissions = claims.get('permissions')
 
-            if is_owner or is_super or (role in roles):
+            if is_owner or is_super or (permission in permissions):
                 return func(*args, **kwargs)
             else:
                 return jsonify(msg='Permission denied'), HTTPStatus.FORBIDDEN
