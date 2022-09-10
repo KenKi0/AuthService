@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
+from flask_security.utils import hash_password
 
 from db.db import db  # noqa: F401
 from models.session import LoginInfo, Session  # noqa: F401
@@ -19,7 +20,7 @@ def register():
         'email': request.json.get('email'),
         'roles': ['user'],
         'is_super': False,
-        'password': request.json.get('password'),
+        'password': hash_password(request.json.get('password')),
     }
 
     # TODO проверка наличтя всех данных в request (+валиность)
