@@ -17,11 +17,11 @@ from models.role import RoleUser
 from models.user import User
 
 
-def get_user_permissions(user_id) -> list[str]:
+def get_user_permissions(user_id) -> list[int]:
     """
     Получение всех прав пользователя.
     :param user_id: id пользователя.
-    :return permissions: Query прав.
+    :return permissions: Список прав.
     """
     permissions = (
         db.session.query(Permission)
@@ -30,7 +30,7 @@ def get_user_permissions(user_id) -> list[str]:
         .filter(RoleUser.user_id == user_id)
         .all()
     )
-    return [permission.name for permission in permissions]
+    return [permission.code for permission in permissions]
 
 
 def get_tokens(user_id, token: dict = None):

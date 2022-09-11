@@ -22,4 +22,4 @@ class AllowedDevice(BaseModel):
     user_agent = db.Column(db.String, nullable=False)
 
     def __repr__(self) -> str:
-        return f'Session: {self.id}'
+        return f'Device: {self.id}'
