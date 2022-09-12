@@ -15,7 +15,6 @@ class User(BaseModel, UserMixin):
     email = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     active = db.Column(db.Boolean(), nullable=False)
     is_super = db.Column(db.Boolean(), default=False)
-    salt = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
 
     def __repr__(self) -> str:
         return f'User: {self.username} {self.id}'
