@@ -313,7 +313,7 @@ def change_password(user_id):
 @jwt_required(refresh=True)
 def refresh_token():
     """
-    Обновление токена.
+    Обновление токенов.
     ---
     openapi: 3.0.2
     info:
@@ -322,10 +322,10 @@ def refresh_token():
     paths:
         /auth/refresh-token:
             post:
-            description: Вход пользователя в аккаунт
+            description: Обновления токенов
             responses:
                 '200':
-                description: Получение Токенов
+                description: Refresh successful
                 content:
                     application/json:
                     schema:
@@ -397,7 +397,7 @@ def logout():
     ...
 
 
-# TODO сделать проверку прав у пользователя
+# TODO определиться что передавать в @check_permission (int | str)
 @blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
 @check_permission('User')
 def login_history(user_id):
