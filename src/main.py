@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 app.config['SECRET_PASSWORD_SALT'] = settings.PASSWORD_SALT
 
-swagger = Swagger(app, config=settings.swagger_config)
+swagger = Swagger(app, config=settings.SWAGGER_CONFIG)
 app.register_blueprint(auth_blueprint)
 
 

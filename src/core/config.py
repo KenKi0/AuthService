@@ -61,6 +61,21 @@ class JWTSettings(BaseConfig):
 
 class ProjectSettings(BaseConfig):
     PASSWORD_SALT: str = 'a5a8f573-3cee-4ccc-8a2b-91cb9f55250a'
+    SWAGGER_CONFIG = {
+        'headers': [],
+        'openapi': '3.0.2',
+        'specs': [
+            {
+                'endpoint': 'apispec_1',
+                'route': '/apispec_1.json',
+                'rule_filter': lambda rule: True,
+                'model_filter': lambda tag: True,
+            },
+        ],
+        'static_url_path': '/flasgger_static',
+        'swagger_ui': True,
+        'specs_route': '/openapi/',
+    }
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
     flask: FlaskSettings = FlaskSettings()
