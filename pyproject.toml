@@ -11,9 +11,11 @@ Flask-JWT-Extended = "^4.4.4"
 flask-marshmallow = "^0.14.0"
 Flask-Security = "^3.0.0"
 Flask-SQLAlchemy = "^2.5.1"
-pydantic = "^1.10.2"
+pydantic = {extras = ["dotenv"], version = "^1.9.2"}
+psycopg2-binary = "^2.9.3"
 aioredis = "^2.0.1"
 flasgger = "^0.9.5"
+email-validator = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 flake8-bugbear = "^22.6.22"
