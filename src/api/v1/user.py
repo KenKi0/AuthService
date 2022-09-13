@@ -10,77 +10,92 @@ from models.user import User, user_datastore
 
 from .utils import check_permission, get_tokens
 
-blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
+auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 
 
-@blueprint.route('/register', methods=('POST',))
+@auth_blueprint.route('/register', methods=('POST',))
 def register():
     """
     Регистрация нового пользователя.
     ---
     openapi: 3.0.2
     info:
-    title: Auth service
-    version: v1
+        title: Auth service
+        version: v1
     paths:
     /auth/register:
-        post:
-        description: Регистрация нового пользователя
-        requestBody:
-            content:
-            application/json:
-                schema:
-                type: object
-                properties:
-                    username:
-                    type: string
-                    writeOnly: true
-                    email:
-                    type: string
-                    writeOnly: true
-                    password:
-                    type: string
-                    writeOnly: true
-                required:
-                    - username
-                    - email
-                    - password
-                example:
-                username: test
-                email: test@test.com
-                password: test_12345
-        responses:
-            '200':
-            description: Successfull registration
-            content:
-                application/json:
-                schema:
-                    type: object
-                    properties:
-                    msg:
+            post:
+                description: Регистрация нового пользователя
+                parameters:
+                    name: username
+                    in: query
+                    required: true
+                    schema:
                         type: string
-                        title: response message
-                example:
-                    message: New user was registered
-            '400':
-            description: Registration failed
-            content:
-                application/json:
-                schema:
-                    type: object
-                    properties:
-                    msg:
+                    name: email
+                    in: query
+                    required: true
+                    schema:
                         type: string
-                        title: response message
-                example:
-                    message: Email is already in use
+                    name: password
+                    in: query
+                    required: true
+                    schema:
+                        type: string
+                requestBody:
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    username:
+                                        type: string
+                                        writeOnly: true
+                                    email:
+                                        type: string
+                                        writeOnly: true
+                                    password:
+                                        type: string
+                                        writeOnly: true
+                                required:
+                                    - username
+                                    - email
+                                    - password
+                            example:
+                                username: test
+                                email: test@test.com
+                                password: test_12345
+                responses:
+                    '200':
+                        description: Successfull registration
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        message:
+                                            type: string
+                                            title: response message
+                                example:
+                                    message: New user was registered
+                    '400':
+                        description: Registration failed
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        message:
+                                            type: string
+                                            title: response message
+                                example:
+                                    message: Email is already in use
     """
     _request = {
         'username': request.json.get('username'),
         'email': request.json.get('email'),
         'is_super': False,
         'password': hash_password(request.json.get('password')),
-        'salt': ...,  # TODO генератор соли
     }
 
     # TODO проверка наличтя всех данных в request (+валиность)
@@ -99,7 +114,7 @@ def register():
     return jsonify(message='New user was registered'), HTTPStatus.OK
 
 
-@blueprint.route('/login', methods=('POST',))
+@auth_blueprint.route('/login', methods=('POST',))
 @jwt_required()
 def login():
     """
@@ -120,17 +135,17 @@ def login():
                     type: object
                     properties:
                         email:
-                        type: string
-                        writeOnly: true
+                            type: string
+                            writeOnly: true
                         password:
-                        type: string
-                        writeOnly: true
+                            type: string
+                            writeOnly: true
                     required:
                         - email
                         - password
                     example:
-                    email: test@test.com
-                    password: test_12345
+                        email: test@test.com
+                        password: test_12345
             responses:
                 '200':
                 description: Получение Токенов
@@ -139,23 +154,23 @@ def login():
                     schema:
                         type: object
                         properties:
-                        msg:
-                            type: string
-                            title: response message
-                        tokens:
-                            type: object
-                            properties:
-                            access_token:
+                            msg:
                                 type: string
-                                title: access token
-                            refresh_token:
-                                type: string
-                                title: refresh token
+                                title: response message
+                            tokens:
+                                type: object
+                                properties:
+                                    access_token:
+                                        type: string
+                                        title: access token
+                                    refresh_token:
+                                        type: string
+                                        title: refresh token
                     example:
                         message: Login successful
                         tokens:
-                        access_token: eyJLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiZi0zNWRhLTQ0NjYwYmQifQ.-xN_h82PHVTCMA9vdoH
-                        refresh_token: eyJ0eXAiOiJIUzI1NiJ9.eyJpZ9uZSIsImlhdCI6MTU5cm9sZSI6InVzZXIifQ.Zvk7_x3_9rymsDAx
+                            access_token: eyJLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiZi0zNWRhLTQ0NjYwYmQifQ.-xN_h82PHVTCMA9v
+                            refresh_token: eyJ0eXAiOiJIUzI1NiJ9.eyJpZ9uZSIsImlhdCI6MTU5cm9sZSI6InVzZXIifQ.Zvk7_x3_9ryms
                 '401':
                 description: Unauthorized access
                 content:
@@ -207,7 +222,7 @@ def login():
 
 
 # TODO определиться что передавать в @check_permission (int | str)
-@blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
+@auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
 @check_permission('User')
 def change_password(user_id):
     """
@@ -302,14 +317,12 @@ def change_password(user_id):
 
     # TODO Проверка пароля (old_password)
 
-    # Сохраняем новый пароль и соль (если храним ее в памяти)
     user.password = _request['new_password']
-    user.salt = ...  # TODO генератор соли
     user.set()
     return jsonify(message='Password changed successful'), HTTPStatus.OK
 
 
-@blueprint.route('/refresh-token', methods=('POST',))
+@auth_blueprint.route('/refresh-token', methods=('POST',))
 @jwt_required(refresh=True)
 def refresh_token():
     """
@@ -380,7 +393,7 @@ def refresh_token():
     )
 
 
-@blueprint.route('/logout', methods=('POST',))
+@auth_blueprint.route('/logout', methods=('POST',))
 def logout():
     """
     Выход пользователя из аккаунта.
@@ -398,7 +411,7 @@ def logout():
 
 
 # TODO определиться что передавать в @check_permission (int | str)
-@blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
+@auth_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
 @check_permission('User')
 def login_history(user_id):
     """
