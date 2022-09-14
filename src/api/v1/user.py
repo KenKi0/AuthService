@@ -17,9 +17,25 @@ api = FlaskPydanticSpec('flask')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
-@api.validate(body=Register, resp=Response('HTTP_409', 'HTTP_200'), tags=['auth'])
+# @api.validate(body=Register, resp=Response('HTTP_409', 'HTTP_200'), tags=['auth'])
 def register():
-    """Регистрация нового пользователя."""
+    """
+    Регистрация нового пользователя.
+    ---
+    post:
+     summary: Регистрация нового пользователя
+     requestBody:
+       content:
+        application/json:
+         schema: Register
+     responses:
+       '200':
+         description: Результат возведения в степень
+       '409':
+         description: Не передан обязательный параметр
+     tags:
+       - Auth
+    """
     _request = {
         'username': request.json.get('username'),
         'email': request.json.get('email'),
@@ -43,9 +59,25 @@ def register():
 
 
 @auth_blueprint.route('/login', methods=('POST',))
-@api.validate(body=Login, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
+# @api.validate(body=Login, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 def login():
-    """Вход пользователя в аккаунт."""
+    """
+    Вход пользователя в аккаунт.
+    ---
+    post:
+     summary: Вход пользователя в аккаунт
+     requestBody:
+       content:
+        application/json:
+         schema: Login
+     responses:
+       '200':
+         description: ///
+       '401':
+         description: ///
+     tags:
+       - Auth
+    """
     _request = {
         'email': request.json.get('email'),
         'password': hash_password(request.json.get('password')),
@@ -85,10 +117,33 @@ def login():
 
 # TODO определиться что передавать в @check_permission (int | str)
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
-@api.validate(body=ChangePassword, resp=Response('HTTP_404', 'HTTP_401', 'HTTP_200'), tags=['auth'])
+# @api.validate(body=ChangePassword, resp=Response('HTTP_404', 'HTTP_401', 'HTTP_200'), tags=['auth'])
 # @check_permission('User')
 def change_password(user_id):
-    """Смена пароля."""
+    """
+    Смена пароля.
+    ---
+    patch:
+     summary: Смена пароля
+     parameters:
+      - name: user_id
+        in: query
+        type: string
+        required: true
+     requestBody:
+       content:
+        application/json:
+         schema: ChangePassword
+     responses:
+       '200':
+         description: ///
+       '401':
+         description: ///
+       '404':
+         description: ///
+     tags:
+       - Auth
+    """
     _request = {
         'old_password': hash_password(request.json.get('old_password')),
         'new_password': hash_password(request.json.get('new_password')),
@@ -108,10 +163,26 @@ def change_password(user_id):
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
-@api.validate(body=RefreshToken, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
+# @api.validate(body=RefreshToken, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 @jwt_required(refresh=True)
 def refresh_token():
-    """Обновление токенов."""
+    """
+    Обновление токенов.
+    ---
+    post:
+     summary: Обновление токенов
+     requestBody:
+       content:
+        application/json:
+         schema: Register
+     responses:
+       '200':
+         description: ///
+       '401':
+         description: ///
+     tags:
+       - Auth
+    """
     user_id = get_jwt_identity()  # TODO посмотреть что возвращает get_jwt_identity() (использовать try/except)
     token = get_jwt()
 
