@@ -1,0 +1,44 @@
+version: '3'
+services:
+
+  db:
+    image: postgres:14.3
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: $PG_DB
+      POSTGRES_USER: $PG_USER
+      POSTGRES_PASSWORD: $PG_PASSWORD
+    volumes:
+      - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    env_file:
+      - .env
+    restart: always
+
+  auth:
+    build:
+      context: .
+      args:
+        PROJECT_ENV: production
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "5000:5000"
+    restart: always
+
+  redis:
+    image: redis:7.0.4-alpine
+    expose:
+      - 6379
+    restart: always
+    volumes:
+      - cache:/data
+
+volumes:
+  db_data:
+  cache:
