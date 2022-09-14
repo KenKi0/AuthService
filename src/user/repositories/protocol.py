@@ -1,8 +1,10 @@
 import dataclasses
+import datetime
 import typing
 import uuid
+from contextlib import contextmanager
 
-from user import layer_models
+import user.layer_models as layer_models
 
 
 class NotFoundError(Exception):
@@ -51,4 +53,27 @@ class UserRepositoryProtocol(typing.Protocol):
         ...
 
     def add_allowed_device(self, device: layer_models.UserDevice) -> layer_models.UserDevice:
+        ...
+
+
+class TMStorageTransaction(typing.Protocol):
+    def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
+        ...
+
+    def delete(self, key: str | bytes) -> None:
+        ...
+
+
+class UserTmStorageRepositoryProtocol(typing.Protocol):
+    def get(self, key: str | bytes) -> typing.Any:
+        ...
+
+    def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
+        ...
+
+    def delete(self, *keys: str | bytes) -> None:
+        ...
+
+    @contextmanager
+    def transaction(self) -> typing.ContextManager[TMStorageTransaction]:
         ...
