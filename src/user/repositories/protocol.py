@@ -18,7 +18,6 @@ class EmailAlreadyExist(Exception):
 @dataclasses.dataclass
 class UserFilter:
     username: str | None = None
-    email: str | None = None
 
 
 class UserRepositoryProtocol(typing.Protocol):

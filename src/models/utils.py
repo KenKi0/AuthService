@@ -18,3 +18,6 @@ class BaseModel(db.Model):
     create_at = db.Column(db.TIMESTAMP, default=datetime.now(), nullable=False)
     updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
     is_deleted = db.Column(db.Boolean(), nullable=False, default=False)
+
+    def cond_delete(self):
+        self.is_deleted = True

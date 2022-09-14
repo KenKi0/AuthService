@@ -9,19 +9,19 @@ from models import AllowedDevice, Session, User
 
 class UserRepository(protocol.UserRepositoryProtocol):
     def get_by_id(self, user_id: uuid.UUID) -> layer_models.User:
-        user = User.query.filter(User.id == user_id).first()
+        user = User.query.filter(User.id == user_id, User.is_deleted == False).first()
         if user is None:
             raise protocol.NotFoundError
         return layer_models.User.parse_obj(user)
 
     def get_by_email(self, email: str) -> layer_models.User:
-        user = User.query.filter(User.email == email).first()
+        user = User.query.filter(User.email == email, User.is_deleted == False).first()
         if user is None:
             raise protocol.NotFoundError
         return layer_models.User.parse_obj(user)
 
     def get_multi(self, filters: protocol.UserFilter | None = None) -> list[layer_models.User]:
-        users = User.query
+        users = User.query.filter(User.is_deleted == False)
         if filters:
             for filter_name, filter_value in asdict(filters).items():
                 model_attribute = getattr(User, filter_name, None)
@@ -32,7 +32,7 @@ class UserRepository(protocol.UserRepositoryProtocol):
 
     def update(self, user_id: uuid.UUID, new_user: layer_models.UserUpdate) -> layer_models.User | None:
         with session_scope():
-            user = User.query.filter(User.id == user_id)
+            user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
                 raise protocol.NotFoundError
             user.update(**new_user.dict(exclude_none=True))
@@ -40,14 +40,14 @@ class UserRepository(protocol.UserRepositoryProtocol):
 
     def delete(self, user_id: uuid.UUID) -> layer_models.User | None:
         with session_scope():
-            user = User.query.filter(User.id == user_id)
+            user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
                 raise protocol.NotFoundError
-            user.delete()
+            user.cond_delete()
         return layer_models.User.parse_obj(user)
 
     def get_history(self, user_id: uuid.UUID) -> list[layer_models.UserHistory]:
-        user_histories = Session.query.filter(Session.user_id == user_id).all()
+        user_histories = Session.query.filter(Session.user_id == user_id, Session.is_deleted == False).all()
         return [layer_models.UserHistory.parse_obj(user_history) for user_history in user_histories]
 
     def create(self, user: layer_models.UserCreate) -> layer_models.User:
@@ -60,11 +60,12 @@ class UserRepository(protocol.UserRepositoryProtocol):
         device = AllowedDevice.query.filter(
             AllowedDevice.user_id == device.user_id,
             AllowedDevice.user_agent == device.user_agent,
+            AllowedDevice.is_deleted == False,
         ).first()
         return layer_models.UserDevice.parse_obj(device)
 
     def get_allowed_devices(self, user_id: uuid.UUID) -> list[layer_models.UserDevice]:
-        devices = AllowedDevice.query.filter(AllowedDevice.user_id == user_id).all()
+        devices = AllowedDevice.query.filter(AllowedDevice.user_id == user_id, AllowedDevice.is_deleted == False).all()
         return [layer_models.UserDevice.parse_obj(device) for device in devices]
 
     def set_new_session(self, session: layer_models.Session) -> None:
