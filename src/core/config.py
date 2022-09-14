@@ -51,16 +51,21 @@ class FlaskSettings(BaseConfig):
 
 
 class JWTSettings(BaseConfig):
-    SECRET: str = '245585dbb5cbe2f151742298d61d364880575bff0bdcbf4ae383f0180e7e47dd'
+    SECRET_KEY: str = '245585dbb5cbe2f151742298d61d364880575bff0bdcbf4ae383f0180e7e47dd'
     REFRESH_TOKEN_EXP: timedelta = timedelta(days=10)
     ACCESS_TOKEN_EXP: timedelta = timedelta(minutes=20)
+    ALGORITHM: str = 'HS256'
 
     class Config:
         env_prefix = 'JWT_'
 
 
+class SecuritySettings(BaseConfig):
+    SECURITY_PASSWORD_SALT: str = 'a5a8f573-3cee-4ccc-8a2b-91cb9f55250a'
+    SECURITY_PASSWORD_HASH: str = 'bcrypt'
+
+
 class ProjectSettings(BaseConfig):
-    PASSWORD_SALT: str = 'a5a8f573-3cee-4ccc-8a2b-91cb9f55250a'
     SWAGGER_CONFIG = {
         'headers': [],
         'openapi': '3.0.2',
@@ -80,6 +85,7 @@ class ProjectSettings(BaseConfig):
     postgres: PostgresSettings = PostgresSettings()
     flask: FlaskSettings = FlaskSettings()
     jwt: JWTSettings = JWTSettings()
+    security: SecuritySettings = SecuritySettings()
 
 
 settings = ProjectSettings()
