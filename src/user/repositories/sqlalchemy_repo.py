@@ -4,7 +4,7 @@ from dataclasses import asdict
 import user.layer_models as layer_models
 import user.repositories.protocol as protocol
 from db import session_scope
-from models import AllowedDevice, Session, User
+from models import AllowedDevice, Permission, RolePermission, RoleUser, Session, User
 
 
 class UserRepository(protocol.UserRepositoryProtocol):
@@ -79,3 +79,9 @@ class UserRepository(protocol.UserRepositoryProtocol):
             db_session.add(new_device)
             db_session.flush()
             return layer_models.UserDevice.parse_obj(new_device)
+
+    def get_user_permissions(self, user_id: uuid.UUID) -> list[layer_models.Permission]:
+        query = Permission.query
+        query = query.join(RolePermission).join(RoleUser, RoleUser.role_id == RolePermission.role_id)
+        permissions = query.filter(RoleUser.user_id == user_id, Permission.is_deleted == False).all()
+        return [layer_models.Permission.parse_obj(permission) for permission in permissions]

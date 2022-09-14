@@ -46,8 +46,14 @@ class UserService:
             user_device = self.db_repo.add_allowed_device(device)
         session = layer_models.Session(user_id=user.id, device_id=user_device.id)
         self.db_repo.set_new_session(session)
+        user_permissions = self.db_repo.get_user_permissions(user.id)
+        additional_claims = {
+            'permissions': [permission.code for permission in user_permissions],
+            'is_super': user.is_super,
+        }
         access_token = create_access_token(
             identity=user.id,
+            additional_claims=additional_claims,
             expires_delta=settings.ACCESS_TOKEN_EXP_DELTA,
         )
         refresh_token = create_refresh_token(
@@ -72,15 +78,26 @@ class UserService:
         self.db_repo.update(passwords.user_id, layer_models.UserUpdate(password=passwords.new_password))
 
     def refresh_tokens(self, token: layer_models.RefreshTokens):
+        try:
+            user = self.db_repo.get_by_id(token.user_id)
+        except repo.NotFoundError:
+            # TODO логировать ошибку
+            raise
         token_user = get_jwt_identity()
-        if token.user_id != token_user:
+        if user.id != token_user:
             raise NoAccessError
         tms_key = token.user_agent + str(token.user_id)
         current_token = self.tms_repo.get(tms_key)
         if current_token != token.refresh:
             raise NoAccessError
+        user_permissions = self.db_repo.get_user_permissions(token_user)
+        additional_claims = {
+            'permissions': [permission.code for permission in user_permissions],
+            'is_super': user.is_super,
+        }
         access_token = create_access_token(
             identity=token_user,
+            additional_claims=additional_claims,
             expires_delta=settings.ACCESS_TOKEN_EXP_DELTA,
         )
         refresh_token = create_refresh_token(

@@ -54,6 +54,9 @@ class UserRepositoryProtocol(typing.Protocol):
     def add_allowed_device(self, device: layer_models.UserDevice) -> layer_models.UserDevice:
         ...
 
+    def get_user_permissions(self, user_id: uuid.UUID) -> list[layer_models.Permission]:
+        ...
+
 
 class TMStorageTransaction(typing.Protocol):
     def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:

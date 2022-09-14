@@ -9,6 +9,7 @@ class User(BaseModel):
     username: str
     email: str
     password: str
+    is_super: bool
 
     class Config:
         orm_mode = True
@@ -50,6 +51,9 @@ class UserDevice(UserID):
     id: uuid.UUID | None  # noqa: VNE003
     user_agent: str
 
+    class Config:
+        orm_mode = True
+
 
 class ChangePassword(UserID):
     old_password: str
@@ -64,3 +68,12 @@ class RefreshTokens(UserID):
 class Logout(UserID):
     user_agent: str
     from_all: bool = False
+
+
+class Permission(BaseModel):
+    name: str
+    code: int
+    description: str
+
+    class Config:
+        orm_mode = True
