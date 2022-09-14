@@ -2,99 +2,27 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
+from flask_pydantic_spec import FlaskPydanticSpec, Response
 from flask_security.utils import hash_password
 
+from api.v1.components.user_schemas import ChangePassword, Login, RefreshToken, Register
 from db.db import db  # noqa: F401
 from models.session import AllowedDevice, Session  # noqa: F401
-from models.user import User, user_datastore
+from models.user import User
 
 from .utils import check_permission, get_tokens
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
+api = FlaskPydanticSpec('flask')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
+@api.validate(body=Register, resp=Response('HTTP_409', 'HTTP_200'), tags=['auth'])
 def register():
-    """
-    Регистрация нового пользователя.
-    ---
-    openapi: 3.0.2
-    info:
-        title: Auth service
-        version: v1
-    paths:
-    /auth/register:
-            post:
-                description: Регистрация нового пользователя
-                parameters:
-                    name: username
-                    in: query
-                    required: true
-                    schema:
-                        type: string
-                    name: email
-                    in: query
-                    required: true
-                    schema:
-                        type: string
-                    name: password
-                    in: query
-                    required: true
-                    schema:
-                        type: string
-                requestBody:
-                    content:
-                        application/json:
-                            schema:
-                                type: object
-                                properties:
-                                    username:
-                                        type: string
-                                        writeOnly: true
-                                    email:
-                                        type: string
-                                        writeOnly: true
-                                    password:
-                                        type: string
-                                        writeOnly: true
-                                required:
-                                    - username
-                                    - email
-                                    - password
-                            example:
-                                username: test
-                                email: test@test.com
-                                password: test_12345
-                responses:
-                    '200':
-                        description: Successfull registration
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        message:
-                                            type: string
-                                            title: response message
-                                example:
-                                    message: New user was registered
-                    '400':
-                        description: Registration failed
-                        content:
-                            application/json:
-                                schema:
-                                    type: object
-                                    properties:
-                                        message:
-                                            type: string
-                                            title: response message
-                                example:
-                                    message: Email is already in use
-    """
+    """Регистрация нового пользователя."""
     _request = {
         'username': request.json.get('username'),
         'email': request.json.get('email'),
-        'is_super': False,
         'password': hash_password(request.json.get('password')),
     }
 
@@ -109,85 +37,19 @@ def register():
         _request['is_super'] = True
 
     # Запись пользователя в базу
-    user_datastore.create_user(**_request)
-    db.session.commit()
+    user = User(**_request)
+    user.set()
     return jsonify(message='New user was registered'), HTTPStatus.OK
 
 
 @auth_blueprint.route('/login', methods=('POST',))
-@jwt_required()
+@api.validate(body=Login, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 def login():
-    """
-    Вход пользователя в аккаунт.
-    ---
-    openapi: 3.0.2
-    info:
-        title: 'Auth service'
-        version: 'v1'
-    paths:
-        /auth/login:
-            post:
-            description: Вход пользователя в аккаунт
-            requestBody:
-                content:
-                application/json:
-                    schema:
-                    type: object
-                    properties:
-                        email:
-                            type: string
-                            writeOnly: true
-                        password:
-                            type: string
-                            writeOnly: true
-                    required:
-                        - email
-                        - password
-                    example:
-                        email: test@test.com
-                        password: test_12345
-            responses:
-                '200':
-                description: Получение Токенов
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                            msg:
-                                type: string
-                                title: response message
-                            tokens:
-                                type: object
-                                properties:
-                                    access_token:
-                                        type: string
-                                        title: access token
-                                    refresh_token:
-                                        type: string
-                                        title: refresh token
-                    example:
-                        message: Login successful
-                        tokens:
-                            access_token: eyJLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiZi0zNWRhLTQ0NjYwYmQifQ.-xN_h82PHVTCMA9v
-                            refresh_token: eyJ0eXAiOiJIUzI1NiJ9.eyJpZ9uZSIsImlhdCI6MTU5cm9sZSI6InVzZXIifQ.Zvk7_x3_9ryms
-                '401':
-                description: Unauthorized access
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: User is not exist
-    """
+    """Вход пользователя в аккаунт."""
     _request = {
         'email': request.json.get('email'),
         'password': hash_password(request.json.get('password')),
-        'user_agent': request.json.get('User-Agent'),
+        'user_agent': request.headers.get('User-Agent'),
     }
 
     # TODO проверка наличтя всех данных в request (+валиность)
@@ -223,87 +85,10 @@ def login():
 
 # TODO определиться что передавать в @check_permission (int | str)
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
-@check_permission('User')
+@api.validate(body=ChangePassword, resp=Response('HTTP_404', 'HTTP_401', 'HTTP_200'), tags=['auth'])
+# @check_permission('User')
 def change_password(user_id):
-    """
-    Смена пароля.
-    ---
-    openapi: 3.0.2
-    info:
-        title: 'Auth service'
-        version: 'v1'
-    paths:
-        /auth/change-password:
-            patch:
-            description: Смена пароля
-            requestBody:
-                content:
-                application/json:
-                    schema:
-                    type: object
-                    properties:
-                        old_password:
-                            type: string
-                            writeOnly: true
-                        new_password:
-                            type: string
-                            writeOnly: true
-                    required:
-                        - old_password
-                        - new_password
-                    example:
-                    old_password: test_12345
-                    new_password: test_67890
-            responses:
-                '200':
-                description: Password changed successful
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: Password changed successful
-                '401':
-                description: Unauthorized access
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: Email or password are not correct
-                '403':
-                description: Access is not allowed
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: Permission denied
-                '404':
-                description: Not found
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: Not found
-    """
+    """Смена пароля."""
     _request = {
         'old_password': hash_password(request.json.get('old_password')),
         'new_password': hash_password(request.json.get('new_password')),
@@ -323,57 +108,10 @@ def change_password(user_id):
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
+@api.validate(body=RefreshToken, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 @jwt_required(refresh=True)
 def refresh_token():
-    """
-    Обновление токенов.
-    ---
-    openapi: 3.0.2
-    info:
-        title: 'Auth service'
-        version: 'v1'
-    paths:
-        /auth/refresh-token:
-            post:
-            description: Обновления токенов
-            responses:
-                '200':
-                description: Refresh successful
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                        tokens:
-                            type: object
-                            properties:
-                            access_token:
-                                type: string
-                                title: access token
-                            refresh_token:
-                                type: string
-                                title: refresh token
-                    example:
-                        message: Refresh successful
-                        tokens:
-                        access_token: eyJLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiZi0zNWRhLTQ0NjYwYmQifQ.-xN_h82PHVTCMA9vdoH
-                        refresh_token: eyJ0eXAiOiJIUzI1NiJ9.eyJpZ9uZSIsImlhdCI6MTU5cm9sZSI6InVzZXIifQ.Zvk7_x3_9rymsDAx
-                '401':
-                description: Unauthorized access
-                content:
-                    application/json:
-                    schema:
-                        type: object
-                        properties:
-                        msg:
-                            type: string
-                            title: response message
-                    example:
-                        message: User is not exist
-    """
+    """Обновление токенов."""
     user_id = get_jwt_identity()  # TODO посмотреть что возвращает get_jwt_identity() (использовать try/except)
     token = get_jwt()
 
