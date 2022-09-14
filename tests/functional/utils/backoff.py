@@ -31,8 +31,8 @@ class Backoff:
     def __init__(
         self,
         backoff: Callable[[int, int], Iterator[int]] = default_backoff_gen,
-        logger_inst: Logger = logger,
-        exception: Exception = Exception,
+        logger_inst: Logger = logging.getLogger(__name__),
+        exception: type[Exception] = Exception,
         start_delay: int = 0.1,
         delay_limit: int = 10,
         num_of_tries: int = 10,
