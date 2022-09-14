@@ -4,6 +4,7 @@ from functools import wraps
 from logging import Logger
 from typing import Callable, Iterator
 
+logger = logging.getLogger(__name__)
 DEFAULT_DELAY = 1
 
 
@@ -31,7 +32,7 @@ class Backoff:
     def __init__(
         self,
         backoff: Callable[[int, int], Iterator[int]] = default_backoff_gen,
-        logger_inst: Logger = logging.getLogger(__name__),
+        logger_inst: Logger = logger,
         exception: type[Exception] = Exception,
         start_delay: int = 0.1,
         delay_limit: int = 10,
