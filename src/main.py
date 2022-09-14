@@ -2,7 +2,9 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_security import Security
 
-from api.v1.user import api, auth_blueprint
+from api.v1.role import role_blueprint
+from api.v1.user import auth_blueprint
+from api.v1.utils import api
 from core.config import settings
 from db.db import init_db
 
@@ -11,6 +13,7 @@ app = Flask(__name__)
 security = Security()
 
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(role_blueprint)
 
 
 def init_jwt(app: Flask, config: object = settings.jwt) -> None:

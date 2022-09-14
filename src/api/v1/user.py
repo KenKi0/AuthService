@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
-from flask_pydantic_spec import FlaskPydanticSpec, Response
+from flask_pydantic_spec import Response
 from flask_security.utils import hash_password
 
 from api.v1.components.user_schemas import ChangePassword, Login, RefreshToken, Register
@@ -10,10 +10,9 @@ from db.db import db  # noqa: F401
 from models.session import AllowedDevice, Session  # noqa: F401
 from models.user import User
 
-from .utils import check_permission, get_tokens
+from .utils import api, check_permission, get_tokens
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
-api = FlaskPydanticSpec('flask')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
