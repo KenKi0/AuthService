@@ -7,6 +7,7 @@ from db import db
 
 
 class BaseModel(db.Model):
+    __abstract__ = True
     __table_args__ = {'schema': 'auth'}
     id = db.Column(  # noqa: VNE003
         UUID(as_uuid=True),
