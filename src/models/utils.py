@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.db import db
+from db import db
 
 
 class BaseModel(db.Model):
@@ -20,10 +20,5 @@ class BaseModel(db.Model):
     updated_at = db.Column(db.TIMESTAMP, default=datetime.now(), onupdate=datetime.now(), nullable=False)
     is_deleted = db.Column(db.Boolean(), nullable=False, default=False)
 
-    def set(self) -> None:
-        try:
-            db.session.add(self)
-            db.session.commit()
-        # TODO определить какой будет Exception, обработать его
-        except Exception:
-            raise
+    def cond_delete(self):
+        self.is_deleted = True
