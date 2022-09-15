@@ -16,5 +16,6 @@ class Permission(BaseModel):
 
 class RolePermission(BaseModel):
     __tablename__ = 'roles_permissions'
+    __table_args__ = (db.UniqueConstraint('perm_id', 'role_id'), {'schema': 'auth'})
     perm_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.permissions.id'), nullable=False)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.roles.id'), nullable=False)
