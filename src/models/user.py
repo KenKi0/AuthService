@@ -1,27 +1,21 @@
 from datetime import datetime
 
-from flask_security import SQLAlchemyUserDatastore, UserMixin
+from flask_security import UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 
-from db import db
-from models.role import Role
+from db.db import db
 from models.utils import BaseModel
 
 
 class User(BaseModel, UserMixin):
     __tablename__ = 'users'
-    username = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(length=150), nullable=False, index=True)
     password = db.Column(db.String(length=150), nullable=False)
     email = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
-    active = db.Column(db.Boolean(), nullable=False)
     is_super = db.Column(db.Boolean(), default=False)
-    salt = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
 
     def __repr__(self) -> str:
         return f'User: {self.username} {self.id}'
-
-
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 
 
 class UserInfo(BaseModel):

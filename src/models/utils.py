@@ -3,10 +3,11 @@ from datetime import datetime
 
 from sqlalchemy.dialects.postgresql import UUID
 
-from db import db
+from db.db import db
 
 
 class BaseModel(db.Model):
+    __abstract__ = True
     __table_args__ = {'schema': 'auth'}
     id = db.Column(  # noqa: VNE003
         UUID(as_uuid=True),
@@ -21,3 +22,11 @@ class BaseModel(db.Model):
 
     def cond_delete(self):
         self.is_deleted = True
+
+    def set(self) -> None:
+        try:
+            db.session.add(self)
+            db.session.commit()
+        # TODO определить какой будет Exception, обработать его
+        except Exception:
+            raise
