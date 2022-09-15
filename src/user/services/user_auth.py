@@ -2,6 +2,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, get_jw
 from flask_security.utils import hash_password, verify_password
 
 import user.layer_models as layer_models
+import user.payload_models as payload_models
 import user.repositories as repo
 from core.config import settings
 
@@ -17,6 +18,10 @@ class NoAccessError(Exception):
     ...
 
 
+class EmailAlreadyExist(Exception):
+    ...
+
+
 class UserService:
     def __init__(
         self,
@@ -26,26 +31,40 @@ class UserService:
         self.db_repo = db_repository
         self.tms_repo = tm_storage_repository
 
-    def register(self, new_user: layer_models.UserCreate) -> layer_models.User:
-        if self.db_repo.get_by_email(new_user.email):
-            raise repo.EmailAlreadyExist
-        new_user.password = hash_password(new_user.password)
-        return self.db_repo.create(new_user)
+    def register(self, new_user: payload_models.UserCreatePayload) -> None:
+        """
+        Создает пользователя если не существует пользователя с указанным email
+        :param new_user: данные нового пользователя
+        :raises : EmailAlreadyExist
+        """
+        try:
+            self.db_repo.get_by_email(new_user.email)
+        except repo.NotFoundError:
+            new_user.password = hash_password(new_user.password)
+            self.db_repo.create(new_user)
+        raise EmailAlreadyExist
 
-    def login(self, user_payload: layer_models.UserLogin):
+    def login(self, user_payload: payload_models.UserLoginPayload) -> tuple[str, str]:
+        """
+        При верных указанных данных возвращает access и refresh токены пользователя
+        :param user_payload: данные пользователя для входа
+        :return: кортеж из access и refresh токенов
+        :raises :
+            NotFoundError : если не получилось идентефицировать пользователя
+            InvalidPassword : если не получлось аутентифицировать пользователя
+        """
         user = self.db_repo.get_by_email(user_payload.email)
         if not user:
             raise repo.NotFoundError
         if not verify_password(user_payload.password, user.password):
             raise InvalidPassword
-        device = layer_models.UserDevice(user_id=user.id, user_agent=user_payload.user_agent)
+        device = payload_models.UserDevicePayload(user_id=user.id, user_agent=user_payload.user_agent)
         try:
             user_device = self.db_repo.get_allowed_device(device)
         except repo.NotFoundError:
             # TODO подтвердить вход с нового устройства через email
             user_device = self.db_repo.add_allowed_device(device)
-        session = layer_models.Session(user_id=user.id, device_id=user_device.id)
-        self.db_repo.set_new_session(session)
+        self.db_repo.set_new_session(payload_models.SessionPayload(user_id=user.id, device_id=user_device.id))
         user_permissions = self.db_repo.get_user_permissions(user.id)
         additional_claims = {
             'permissions': [permission.code for permission in user_permissions],
@@ -64,7 +83,15 @@ class UserService:
         self.tms_repo.set(tms_key, refresh_token)
         return access_token, refresh_token
 
-    def change_password(self, passwords: layer_models.ChangePassword):
+    def change_password(self, passwords: payload_models.ChangePasswordPayload) -> None:
+        """
+        Меняет пароль указанного пользователя
+        :param passwords: данные для смены пароля пользователя
+        :raises :
+            NoAccessError : если была попытка изменить пароль другого пользователя
+            NotFoundError : если указанный пользователь не был найден в базе
+            InvalidPassword : если был указан не правильный текущий пароль
+        """
         token_user = get_jwt_identity()
         if passwords.user_id != token_user:
             raise NoAccessError
@@ -75,9 +102,18 @@ class UserService:
             raise
         if not verify_password(passwords.old_password, user.password):
             raise InvalidPassword
-        self.db_repo.update(passwords.user_id, layer_models.UserUpdate(password=passwords.new_password))
+        self.db_repo.update(passwords.user_id, payload_models.UserUpdatePayload(password=passwords.new_password))
 
-    def refresh_tokens(self, token: layer_models.RefreshTokens):
+    def refresh_tokens(self, token: payload_models.RefreshTokensPayload) -> tuple[str, str]:
+        """
+        Выдает новые access и refresh токены для указанного пользователя
+        :param token: данные для обнволения токенов
+        :return: кортеж из access и refresh токенов
+        :raises :
+            NoAccessError : если была попытка получить токены другого пользователя
+            NotFoundError : если указанный пользователь не был найден в базе
+            InvalidPassword : если был указан не правильный текущий пароль
+        """
         try:
             user = self.db_repo.get_by_id(token.user_id)
         except repo.NotFoundError:
@@ -107,13 +143,26 @@ class UserService:
         self.tms_repo.set(tms_key, refresh_token)
         return access_token, refresh_token
 
-    def get_history(self, user: layer_models.UserID) -> list[layer_models.UserHistory]:
+    def get_history(self, user: payload_models.UserID) -> list[layer_models.Session]:
+        """
+        Отдает историю посещений пользователя на аккаунт
+        :param user: данные пользователя
+        :return: список из историй
+        :raises :
+            NoAccessError : если была попатка получить истории другого пользователя
+        """
         token_user = get_jwt_identity()
         if user.user_id != token_user:
             raise NoAccessError
         return self.db_repo.get_history(user.user_id)
 
-    def logout(self, logout: layer_models.Logout):
+    def logout(self, logout: payload_models.LogoutPayload):
+        """
+        Заверщает текущюю или все активные сессис аккаунта
+        :param logout: данные пользователя
+        :raises :
+            NoAccessError : если была попытка выйти из чужого аккаунта
+        """
         token_user = get_jwt_identity()
         if logout.user_id != token_user:
             raise NoAccessError
@@ -122,11 +171,8 @@ class UserService:
         else:
             devices = [
                 self.db_repo.get_allowed_device(
-                    layer_models.UserDevice(user_id=logout.user_id, user_agent=logout.user_agent),
+                    payload_models.UserDevicePayload(user_id=logout.user_id, user_agent=logout.user_agent),
                 ),
             ]
         tms_keys = [device.user_agent + str(token_user) for device in devices]
         self.tms_repo.delete(*tms_keys)
-        with self.tms_repo.transaction() as tr:
-            for device in devices:
-                tr.delete(device.user_agent + str(logout.user_id))

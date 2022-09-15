@@ -1,16 +1,10 @@
-from protocol import (
-    EmailAlreadyExist,
-    NotFoundError,
-    UserFilter,
-    UserRepositoryProtocol,
-    UserTmStorageRepositoryProtocol,
-)
-from redis_repo import UserTmStorageRepository
-from sqlalchemy_repo import UserRepository
+from .protocol import NotFoundError, UserFilter, UserRepositoryProtocol, UserTmStorageRepositoryProtocol
+from .redis_repo import UserTmStorageRepository
+from .sqlalchemy_repo import UserSqlalchemyRepository
 
 
 def get_user_db_repo() -> UserRepositoryProtocol:
-    return UserRepository()
+    return UserSqlalchemyRepository()
 
 
 def get_user_tms_repo() -> UserTmStorageRepositoryProtocol:
@@ -18,10 +12,9 @@ def get_user_tms_repo() -> UserTmStorageRepositoryProtocol:
 
 
 __all__ = [
-    'EmailAlreadyExist',
     'NotFoundError',
     'UserFilter',
     'UserRepositoryProtocol',
-    'UserRepository',
+    'UserSqlalchemyRepository',
     'UserTmStorageRepositoryProtocol',
 ]
