@@ -2,10 +2,10 @@ import asyncio
 import os
 
 from aioredis import ConnectionError, Redis
-from backoff import backoff
+from backoff import Backoff
 
 
-@backoff()
+@Backoff(exception=ConnectionError)
 async def main():
     redis = Redis(host=os.environ.get('REDIS_HOST'))
 

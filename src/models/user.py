@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_security import SQLAlchemyUserDatastore, UserMixin
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.db import db
+from db import db
 from models.role import Role
 from models.utils import BaseModel
 
