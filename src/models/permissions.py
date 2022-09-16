@@ -1,5 +1,6 @@
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.exc import PendingRollbackError
+from sqlalchemy.exc import IntegrityError, PendingRollbackError
 
 from db.db import db
 from models.utils import BaseModel
@@ -44,5 +45,5 @@ def create_permission():
     for perm in default_permission:
         try:
             Permission(**perm).set()
-        except PendingRollbackError:
+        except (PendingRollbackError, UniqueViolation, IntegrityError):
             continue
