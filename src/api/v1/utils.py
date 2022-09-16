@@ -9,12 +9,15 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
+from flask_pydantic_spec import FlaskPydanticSpec
 
 from core.config import settings
 from db.db import db
 from models.permissions import Permission, RolePermission
 from models.role import RoleUser
 from models.user import User
+
+api = FlaskPydanticSpec('flask')
 
 
 def get_user_permissions(user_id) -> list[int]:
@@ -57,12 +60,12 @@ def get_tokens(user_id, token: dict = None):
     access_token = create_access_token(
         identity=user_id,
         additional_claims=additional_claims,
-        expires_delta=settings.ACCESS_TOKEN_EXP_DELTA,
+        expires_delta=settings.jwt.ACCESS_TOKEN_EXP,
     )
     refresh_token = create_refresh_token(
         identity=user_id,
         additional_claims=additional_claims,
-        expires_delta=settings.REFRESH_TOKEN_EXP_DELTA,
+        expires_delta=settings.jwt.REFRESH_TOKEN_EXP,
     )
     return access_token, refresh_token
 
