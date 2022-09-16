@@ -22,10 +22,10 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442 \u0432\u043e\u0437\u0432\u0435\u0434\u0435\u043d\u0438\u044f \u0432 \u0441\u0442\u0435\u043f\u0435\u043d\u044c"
+                        "description": "New user was registered"
                     },
                     "409": {
-                        "description": "\u041d\u0435 \u043f\u0435\u0440\u0435\u0434\u0430\u043d \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440"
+                        "description": "Email is already in use"
                     }
                 },
                 "tags": [
@@ -47,10 +47,13 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "///"
+                        "description": "Login successful"
+                    },
+                    "400": {
+                        "description": "Wrong password"
                     },
                     "401": {
-                        "description": "///"
+                        "description": "User is not exist"
                     }
                 },
                 "tags": [
@@ -64,8 +67,13 @@
                 "parameters": [
                     {
                         "name": "user_id",
-                        "in": "query",
+                        "in": "path",
                         "type": "string",
+                        "required": true
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "headers",
                         "required": true
                     }
                 ],
@@ -80,13 +88,13 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "///"
+                        "description": "Password changed successful"
+                    },
+                    "400": {
+                        "description": "Wrong password"
                     },
                     "401": {
-                        "description": "///"
-                    },
-                    "404": {
-                        "description": "///"
+                        "description": "User is not exist"
                     }
                 },
                 "tags": [
@@ -101,17 +109,17 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/Register"
+                                "$ref": "#/components/schemas/RefreshToken"
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "///"
+                        "description": "Refresh successful"
                     },
-                    "401": {
-                        "description": "///"
+                    "400": {
+                        "description": "Not user"
                     }
                 },
                 "tags": [
@@ -119,8 +127,55 @@
                 ]
             }
         },
-        "/api/v1/auth/logout": {},
-        "/api/v1/auth/login-history/{user_id}": {},
+        "/api/v1/auth/logout": {
+            "post": {
+                "summary": "\u0412\u044b\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Logout"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User logged out"
+                    },
+                    "400": {
+                        "description": "Not user"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/login-history/{user_id}": {
+            "get": {
+                "summary": "\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u0439",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User logged out"
+                    },
+                    "400": {
+                        "description": "Not user"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
         "/logout": {},
         "/login": {}
     },
@@ -144,20 +199,20 @@
             "Register": {
                 "type": "object",
                 "properties": {
-                    "password": {
+                    "email": {
                         "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
+                        "description": "email",
+                        "example": "test_2@test.com"
                     },
                     "username": {
                         "type": "string",
                         "description": "name",
                         "example": "TestUser"
                     },
-                    "email": {
+                    "password": {
                         "type": "string",
-                        "description": "email",
-                        "example": "test_2@test.com"
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -169,15 +224,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "password": {
-                        "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
-                    },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -188,15 +243,15 @@
             "ChangePassword": {
                 "type": "object",
                 "properties": {
-                    "new_password": {
-                        "type": "string",
-                        "description": "new_password",
-                        "example": "Test_67890"
-                    },
                     "old_password": {
                         "type": "string",
                         "description": "old_password",
                         "example": "Test_12345"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "description": "new_password",
+                        "example": "Test_67890"
                     }
                 },
                 "required": [
@@ -230,6 +285,23 @@
                         "$ref": "#/components/schemas/Tokens"
                     }
                 }
+            },
+            "Logout": {
+                "type": "object",
+                "properties": {
+                    "from_all": {
+                        "type": "boolean",
+                        "description": "\u0412\u044b\u0445\u043e\u0434 \u0441\u043e \u0432\u0441\u0435\u0445 \u0443\u0441\u0442\u0440\u043e\u0439\u0441\u0442\u0432"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "description": "Enter JWT Bearer token",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
             }
         }
     }

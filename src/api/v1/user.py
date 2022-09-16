@@ -1,23 +1,25 @@
 from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required
-from flask_pydantic_spec import FlaskPydanticSpec, Response
-from flask_security.utils import hash_password
+from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required  # noqa: F401
+from user.payload_models import (
+    ChangePasswordPayload,
+    LogoutPayload,
+    RefreshTokensPayload,
+    UserCreatePayload,
+    UserID,
+    UserLoginPayload,
+)
+from user.services.user_auth import EmailAlreadyExist, InvalidPassword, NoAccessError, UserService
 
-from api.v1.components.user_schemas import ChangePassword, Login, RefreshToken, Register
-from db.db import db  # noqa: F401
-from models.session import AllowedDevice, Session  # noqa: F401
-from models.user import User
+from user.repositories import NotFoundError
 
-from .utils import check_permission, get_tokens
+from .utils import check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
-api = FlaskPydanticSpec('flask')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
-# @api.validate(body=Register, resp=Response('HTTP_409', 'HTTP_200'), tags=['auth'])
 def register():
     """
     Регистрация нового пользователя.
@@ -30,36 +32,25 @@ def register():
          schema: Register
      responses:
        '200':
-         description: Результат возведения в степень
+         description: New user was registered
        '409':
-         description: Не передан обязательный параметр
+         description: Email is already in use
      tags:
        - Auth
     """
     _request = {
         'username': request.json.get('username'),
         'email': request.json.get('email'),
-        'password': hash_password(request.json.get('password')),
+        'password': request.json.get('password'),
     }
-
-    # TODO проверка наличтя всех данных в request (+валиность)
-
-    # Проверка email (есть или нет в базе)
-    user = User.query.filter_by(email=_request['email']).first()
-    if user:
+    try:
+        UserService().register(UserCreatePayload(**_request))
+    except EmailAlreadyExist:
         return jsonify(message='Email is already in use'), HTTPStatus.CONFLICT
-
-    if _request['username'] == 'admin' and _request['email'] == 'admin@test.com':
-        _request['is_super'] = True
-
-    # Запись пользователя в базу
-    user = User(**_request)
-    user.set()
     return jsonify(message='New user was registered'), HTTPStatus.OK
 
 
 @auth_blueprint.route('/login', methods=('POST',))
-# @api.validate(body=Login, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 def login():
     """
     Вход пользователя в аккаунт.
@@ -72,37 +63,25 @@ def login():
          schema: Login
      responses:
        '200':
-         description: ///
+         description: Login successful
+       '400':
+         description: Wrong password
        '401':
-         description: ///
+         description: User is not exist
      tags:
        - Auth
     """
     _request = {
         'email': request.json.get('email'),
-        'password': hash_password(request.json.get('password')),
+        'password': request.json.get('password'),
         'user_agent': request.headers.get('User-Agent'),
     }
-
-    # TODO проверка наличтя всех данных в request (+валиность)
-
-    user = User.query.filter_by(email=_request['email']).first()
-    if not user:
+    try:
+        access_token, refresh_token = UserService().login(UserLoginPayload(**_request))
+    except NotFoundError:
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
-
-    # TODO проверить пароль
-
-    # Запись данных о девайсе и сессии юзера
-    device = AllowedDevice.query.filter_by(user_id=user.id, user_agent=_request['user_agent']).first()
-    if not device:
-        device = AllowedDevice(user_id=user.id, user_agent=_request['user_agent'])
-        device.set()
-    session = Session(user_id=user.id, device_id=device.id)
-    session.set()
-
-    #  Получение JWT токенов
-    access_token, refresh_token = get_tokens(user.id)
-
+    except InvalidPassword:
+        return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
     return (
         jsonify(
             message='Login successful',
@@ -115,10 +94,9 @@ def login():
     )
 
 
-# TODO определиться что передавать в @check_permission (int | str)
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
-# @api.validate(body=ChangePassword, resp=Response('HTTP_404', 'HTTP_401', 'HTTP_200'), tags=['auth'])
-# @check_permission('User')
+@jwt_required()
+@check_permission(permission=0)
 def change_password(user_id):
     """
     Смена пароля.
@@ -127,8 +105,11 @@ def change_password(user_id):
      summary: Смена пароля
      parameters:
       - name: user_id
-        in: query
+        in: path
         type: string
+        required: true
+      - name: Authorization
+        in: headers
         required: true
      requestBody:
        content:
@@ -136,34 +117,31 @@ def change_password(user_id):
          schema: ChangePassword
      responses:
        '200':
-         description: ///
+         description: Password changed successful
+       '400':
+         description: Wrong password
        '401':
-         description: ///
-       '404':
-         description: ///
+         description: User is not exist
      tags:
        - Auth
     """
+
     _request = {
-        'old_password': hash_password(request.json.get('old_password')),
-        'new_password': hash_password(request.json.get('new_password')),
+        'user_id': user_id,
+        'old_password': request.json.get('old_password'),
+        'new_password': request.json.get('new_password'),
     }
-
-    # TODO проверка наличтя всех данных в request (+валиность)
-
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
-        return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-
-    # TODO Проверка пароля (old_password)
-
-    user.password = _request['new_password']
-    user.set()
-    return jsonify(message='Password changed successful'), HTTPStatus.OK
+    try:
+        UserService().change_password(ChangePasswordPayload(**_request))
+    except NoAccessError:
+        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    except NotFoundError:
+        return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
+    except InvalidPassword:
+        return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
-# @api.validate(body=RefreshToken, resp=Response('HTTP_401', 'HTTP_200'), tags=['auth'])
 @jwt_required(refresh=True)
 def refresh_token():
     """
@@ -174,22 +152,25 @@ def refresh_token():
      requestBody:
        content:
         application/json:
-         schema: Register
+         schema: RefreshToken
      responses:
        '200':
-         description: ///
-       '401':
-         description: ///
+         description: Refresh successful
+       '400':
+         description: Not user
      tags:
        - Auth
     """
-    user_id = get_jwt_identity()  # TODO посмотреть что возвращает get_jwt_identity() (использовать try/except)
-    token = get_jwt()
 
-    if not user_id:
-        return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
-
-    access_token, refresh_token = get_tokens(user_id, token)
+    _request = {
+        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_agent': request.headers.get('User-Agent'),
+        'refresh': '',  # что здесь должно быть?
+    }
+    try:
+        access_token, refresh_token = UserService().refresh_tokens(RefreshTokensPayload(**_request))
+    except NoAccessError:
+        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     return (
         jsonify(
             message='Refresh successful',
@@ -207,39 +188,62 @@ def logout():
     """
     Выход пользователя из аккаунта.
     ---
-    openapi: 3.0.2
-    info:
-        title: 'Auth service'
-        version: 'v1'
-    paths:
-        /auth/logout:
-            post:
-                ...
+    post:
+     summary: Выход пользователя из аккаунта
+     requestBody:
+       content:
+        application/json:
+         schema: Logout
+     responses:
+       '200':
+         description: User logged out
+       '400':
+         description: Not user
+     tags:
+       - Auth
     """
-    ...
+    _request = {
+        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_agent': request.headers.get('User-Agent'),
+        'from_all': request.json.get('from_all'),
+    }
+    try:
+        UserService().logout(LogoutPayload(**_request))
+    except NoAccessError:
+        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    return jsonify(message='User logged out'), HTTPStatus.OK
 
 
-# TODO определиться что передавать в @check_permission (int | str)
 @auth_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
-@check_permission('User')
+@check_permission(permission=0)
 def login_history(user_id):
     """
     Получить историю посещений.
     ---
-    openapi: 3.0.2
-    info:
-        title: 'Auth service'
-        version: 'v1'
-    paths:
-        /login-history/<uuid:user_id>:
-            get:
-                ...
+    get:
+     summary: Получить историю посещений
+     parameters:
+      - name: user_id
+        in: path
+        type: string
+        required: true
+     responses:
+       '200':
+         description: User logged out
+       '400':
+         description: Not user
+     tags:
+       - Auth
     """
-    user = User.query.filter_by(id=user_id).first()
-    if not user:
-        return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
 
-    #  Находим историю пользователя
-    sessions = Session.query.filter_by(user_id=user.id).order_by(Session.auth_date.asc()).all()  # noqa: F841
-
-    # TODO придумать как отдавать историю (посмотреть flask_marshmallow)
+    _request = {
+        'user_id': user_id,
+    }
+    try:
+        user_histories = UserService().get_history(UserID(**_request))
+    except NoAccessError:
+        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    return (
+        jsonify(message='Refresh successful', history=user_histories),
+        HTTPStatus.OK,
+    )

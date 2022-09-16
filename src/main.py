@@ -8,16 +8,20 @@ from flask_jwt_extended import JWTManager
 from flask_security import Security
 from flask_swagger_ui import get_swaggerui_blueprint
 
-from api.v1.components.user_schemas import ChangePassword, Login, RefreshToken, Register
-from api.v1.user import api, auth_blueprint, register
+from api.v1.components.user_schemas import ChangePassword, Login, Logout, RefreshToken, Register
+from api.v1.user import auth_blueprint
 from core.config import settings
 from db.db import init_db
+from models.permissions import create_permission
+from models.role import create_role
 
 jwt = JWTManager()
 app = Flask(__name__)
 security = Security()
 swagger_ui = get_swaggerui_blueprint(
-    settings.swagger.SWAGGER_URL, settings.swagger.API_URL, config={'app_name': 'My App'}
+    settings.swagger.SWAGGER_URL,
+    settings.swagger.API_URL,
+    config={'app_name': 'My App'},
 )
 
 app.register_blueprint(swagger_ui, url_prefix=settings.swagger.SWAGGER_URL)
@@ -27,10 +31,6 @@ app.register_blueprint(auth_blueprint)
 def init_jwt(app: Flask, config: object = settings.jwt) -> None:
     app.config.from_object(config)
     jwt.init_app(app)
-
-
-def init_api(app: Flask) -> None:
-    api.register(app)
 
 
 def init_security(app: Flask, config: object = settings.security) -> None:
@@ -43,13 +43,22 @@ def init_spec(app: Flask) -> None:
         title='Auth service',
         version='1.0.0',
         openapi_version='3.0.2',
-        info=dict(description='Auth service'),
+        info={'description': 'Auth service'},
         plugins=[FlaskPlugin(), MarshmallowPlugin()],
     )
+    security_scheme_bearer = {
+        'type': 'http',
+        'description': 'Enter JWT Bearer token',
+        'scheme': 'bearer',
+        'bearerFormat': 'JWT',
+    }
+
+    spec.components.security_scheme('BearerAuth', security_scheme_bearer)
     spec.components.schema('Register', schema=Register)
     spec.components.schema('Login', schema=Login)
     spec.components.schema('ChangePassword', schema=ChangePassword)
     spec.components.schema('RefreshToken', schema=RefreshToken)
+    spec.components.schema('Logout', schema=Logout)
 
     for tag in settings.swagger.SPEC_TAGS:
         spec.tag(tag)
@@ -69,9 +78,11 @@ def init_spec(app: Flask) -> None:
 def main():
     init_db(app)
     init_jwt(app)
-    # init_api(app)
     init_security(app)
     init_spec(app)
+    create_permission()
+    create_role()
+
     app.run(debug=True, host='0.0.0.0', port=5000)
 
 
