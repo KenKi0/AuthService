@@ -45,4 +45,4 @@ class UserDevicePayload(UserID):
 
 
 class SessionPayload(UserID):
-    device_id: str
+    device_id: uuid.UUID

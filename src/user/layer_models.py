@@ -19,7 +19,7 @@ class User(DefaultModel):
 
 
 class Session(DefaultModel):
-    device_id: str
+    device_id: uuid.UUID
     user_id: uuid.UUID
     auth_date: datetime.datetime
 

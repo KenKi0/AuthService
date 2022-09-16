@@ -4,23 +4,24 @@ from dataclasses import asdict
 import user.layer_models as layer_models
 import user.payload_models as payload_models
 import user.repositories.protocol as protocol
+import utils.exceptions as exc
 from db import session_scope
 from models import AllowedDevice, Permission, Role, RolePermission, RoleUser, Session, User
 
-DEFAULT_USER = 'User'
+DEFAULT_USER_ROLE = 'User'
 
 
 class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
     def get_by_id(self, user_id: uuid.UUID) -> layer_models.User:
         user = User.query.filter(User.id == user_id, User.is_deleted == False).first()
         if user is None:
-            raise protocol.NotFoundError
+            raise exc.NotFoundError
         return layer_models.User.from_orm(user)
 
     def get_by_email(self, email: str) -> layer_models.User:
         user = User.query.filter(User.email == email, User.is_deleted == False).first()
         if user is None:
-            raise protocol.NotFoundError
+            raise exc.NotFoundError
         return layer_models.User.from_orm(user)
 
     def get_multi(self, filters: protocol.UserFilter | None = None) -> list[layer_models.User]:
@@ -35,7 +36,7 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
 
     def create(self, user: payload_models.UserCreatePayload) -> layer_models.User:
         new_user = User(**user.dict())
-        role = Role.query.filter(Role.name == DEFAULT_USER).first()
+        role = Role.query.filter(Role.name == DEFAULT_USER_ROLE).first()
         with session_scope() as db_session:
             db_session.add(new_user)
             db_session.flush()
@@ -47,7 +48,7 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         with session_scope():
             user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
-                raise protocol.NotFoundError
+                raise exc.NotFoundError
             user.update(**new_user.dict(exclude_none=True))
         return layer_models.User.from_orm(user)
 
@@ -55,7 +56,7 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         with session_scope():
             user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
-                raise protocol.NotFoundError
+                raise exc.NotFoundError
             user.cond_delete()
         return layer_models.User.from_orm(user)
 
@@ -71,7 +72,9 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
             AllowedDevice.user_id == device.user_id,
             AllowedDevice.user_agent == device.user_agent,
             AllowedDevice.is_deleted == False,
-        ).first()
+        )
+        if device.count() == 0:
+            raise exc.NotFoundError
         return layer_models.UserDevice.from_orm(device)
 
     def get_allowed_devices(self, user_id: uuid.UUID) -> list[layer_models.UserDevice]:

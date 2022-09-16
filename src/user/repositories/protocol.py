@@ -8,10 +8,6 @@ import user.layer_models as layer_models
 import user.payload_models as payload_models
 
 
-class NotFoundError(Exception):
-    ...
-
-
 @dataclasses.dataclass
 class UserFilter:
     username: str | None = None
@@ -20,13 +16,13 @@ class UserFilter:
 class UserRepositoryProtocol(typing.Protocol):
     def get_by_id(self, user_id: uuid.UUID) -> layer_models.User:
         """
-        :raises : NotFoundError
+        :raises NotFoundError:
         """
         ...
 
     def get_by_email(self, email: str) -> layer_models.User:
         """
-        :raises : NotFoundError
+        :raises NotFoundError:
         """
         ...
 
@@ -38,13 +34,13 @@ class UserRepositoryProtocol(typing.Protocol):
 
     def update(self, user_id: uuid.UUID, user: payload_models.UserUpdatePayload) -> layer_models.User:
         """
-        :raises : NotFoundError: если не была найдена запись для обновления в базе
+        :raises NotFoundError: если не была найдена запись для обновления в базе
         """
         ...
 
     def delete(self, user_id: uuid.UUID) -> layer_models.User:
         """
-        :raise NotFoundError: если не была найдена запись для удаления в базе
+        :raises NotFoundError: если не была найдена запись для удаления в базе
         """
         ...
 
@@ -76,15 +72,19 @@ class TMStorageTransaction(typing.Protocol):
 
 
 class UserTmStorageRepositoryProtocol(typing.Protocol):
-    def get(self, key: str | bytes) -> typing.Any:
+    @staticmethod
+    def get(key: str | bytes) -> typing.Any:
         ...
 
-    def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
+    @staticmethod
+    def set(key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
         ...
 
-    def delete(self, *keys: str | bytes) -> None:
+    @staticmethod
+    def delete(*keys: str | bytes) -> None:
         ...
 
+    @staticmethod
     @contextmanager
-    def transaction(self) -> typing.ContextManager[TMStorageTransaction]:
+    def transaction() -> typing.ContextManager[TMStorageTransaction]:
         ...
