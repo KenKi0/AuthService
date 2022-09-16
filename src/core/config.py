@@ -65,27 +65,32 @@ class SecuritySettings(BaseConfig):
     SECURITY_PASSWORD_HASH: str = 'bcrypt'
 
 
+class SwaggerSettings(BaseConfig):
+    SPEC_TAGS: list = [
+        {
+            'name': 'Auth',
+            'description': 'Auth',
+        },
+        {
+            'name': 'User',
+            'description': 'User data',
+        },
+        {
+            'name': 'Role',
+            'description': 'Roles',
+        },
+    ]
+    SWAGGER_URL: str = '/swagger'
+    API_URL: str = '/static/swagger.json'
+
+
 class ProjectSettings(BaseConfig):
-    SWAGGER_CONFIG = {
-        'headers': [],
-        'openapi': '3.0.2',
-        'specs': [
-            {
-                'endpoint': 'apispec_1',
-                'route': '/apispec_1.json',
-                'rule_filter': lambda rule: True,
-                'model_filter': lambda tag: True,
-            },
-        ],
-        'static_url_path': '/flasgger_static',
-        'swagger_ui': True,
-        'specs_route': '/openapi/',
-    }
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
     flask: FlaskSettings = FlaskSettings()
     jwt: JWTSettings = JWTSettings()
     security: SecuritySettings = SecuritySettings()
+    swagger: SwaggerSettings = SwaggerSettings()
 
 
 settings = ProjectSettings()
