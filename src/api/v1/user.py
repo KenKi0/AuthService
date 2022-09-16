@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required  # noqa: F401
+
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
@@ -10,9 +11,8 @@ from user.payload_models import (
     UserID,
     UserLoginPayload,
 )
-from user.services.user_auth import EmailAlreadyExist, InvalidPassword, NoAccessError, UserService
-
 from user.repositories import NotFoundError
+from user.services.user_auth import EmailAlreadyExist, InvalidPassword, NoAccessError, UserService
 
 from .utils import check_permission
 
@@ -96,20 +96,19 @@ def login():
 
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
 @jwt_required()
-@check_permission(permission=0)
+# @check_permission(permission=0)
 def change_password(user_id):
     """
     Смена пароля.
     ---
     patch:
+     security:
+      - BearerAuth: []
      summary: Смена пароля
      parameters:
       - name: user_id
         in: path
         type: string
-        required: true
-      - name: Authorization
-        in: headers
         required: true
      requestBody:
        content:
@@ -122,6 +121,8 @@ def change_password(user_id):
          description: Wrong password
        '401':
          description: User is not exist
+       '403':
+         description: Permission denied
      tags:
        - Auth
     """
@@ -148,6 +149,8 @@ def refresh_token():
     Обновление токенов.
     ---
     post:
+     security:
+      - BearerAuth: []
      summary: Обновление токенов
      requestBody:
        content:
@@ -189,6 +192,8 @@ def logout():
     Выход пользователя из аккаунта.
     ---
     post:
+     security:
+      - BearerAuth: []
      summary: Выход пользователя из аккаунта
      requestBody:
        content:
@@ -221,6 +226,8 @@ def login_history(user_id):
     Получить историю посещений.
     ---
     get:
+     security:
+      - BearerAuth: []
      summary: Получить историю посещений
      parameters:
       - name: user_id
@@ -232,6 +239,8 @@ def login_history(user_id):
          description: User logged out
        '400':
          description: Not user
+       '403':
+         description: Permission denied
      tags:
        - Auth
     """
