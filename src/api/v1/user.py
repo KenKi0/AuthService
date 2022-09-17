@@ -145,6 +145,7 @@ def change_password(user_id):
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
+    return jsonify(message='Password changed successful'), HTTPStatus.OK
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
