@@ -49,8 +49,8 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
             user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
                 raise exc.NotFoundError
-            user.update(**new_user.dict(exclude_none=True))
-        return layer_models.User.from_orm(user)
+            user.update(new_user.dict(exclude_none=True))
+        return layer_models.User.from_orm(user.first())
 
     def delete(self, user_id: uuid.UUID) -> layer_models.User | None:
         with session_scope():
@@ -75,7 +75,7 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         )
         if device.count() == 0:
             raise exc.NotFoundError
-        return layer_models.UserDevice.from_orm(device)
+        return layer_models.UserDevice.from_orm(device.first())
 
     def get_allowed_devices(self, user_id: uuid.UUID) -> list[layer_models.UserDevice]:
         devices = AllowedDevice.query.filter(AllowedDevice.user_id == user_id, AllowedDevice.is_deleted == False).all()

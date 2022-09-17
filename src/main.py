@@ -30,7 +30,6 @@ def init_security(app: Flask, config: object = settings.security) -> None:
     security.init_app(app)
 
 
-
 def main():
     init_db(app)
     init_jwt(app)

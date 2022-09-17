@@ -30,7 +30,7 @@ class UserService:
         """
         try:
             self.db_repo.get_by_email(new_user.email)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             new_user.password = hash_password(new_user.password)
             self.db_repo.create(new_user)
             return
@@ -47,13 +47,13 @@ class UserService:
         """
         user = self.db_repo.get_by_email(user_payload.email)
         if not user:
-            raise repo.NotFoundError
+            raise exc.NotFoundError
         if not verify_password(user_payload.password, user.password):
             raise exc.InvalidPassword
         device = payload_models.UserDevicePayload(user_id=user.id, user_agent=user_payload.user_agent)
         try:
             user_device = self.db_repo.get_allowed_device(device)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO подтвердить вход с нового устройства через email
             user_device = self.db_repo.add_allowed_device(device)
         self.db_repo.add_new_session(payload_models.SessionPayload(user_id=user.id, device_id=user_device.id))
@@ -65,16 +65,16 @@ class UserService:
         access_token = create_access_token(
             identity=user.id,
             additional_claims=additional_claims,
-            expires_delta=settings.jwt.ACCESS_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.ACCESS_TOKEN_EXP,
         )
         refresh_token = create_refresh_token(
             identity=user.id,
-            expires_delta=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.REFRESH_TOKEN_EXP,
         )
         self.tms_repo.set(
             user_payload.user_agent + str(user.id),
             refresh_token,
-            ex=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            ex=settings.jwt.REFRESH_TOKEN_EXP,
         )
         return access_token, refresh_token
 
@@ -88,7 +88,7 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(passwords.user_id)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO логировать ошибку
             raise
         if not verify_password(passwords.old_password, user.password):
@@ -109,7 +109,7 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(token.user_id)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO логировать ошибку
             raise
         tms_key = token.user_agent + str(token.user_id)
