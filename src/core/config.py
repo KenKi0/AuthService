@@ -54,6 +54,9 @@ class JWTSettings(BaseConfig):
     SECRET_KEY: str = '245585dbb5cbe2f151742298d61d364880575bff0bdcbf4ae383f0180e7e47dd'
     REFRESH_TOKEN_EXP: timedelta = timedelta(days=10)
     ACCESS_TOKEN_EXP: timedelta = timedelta(minutes=20)
+    JWT_COOKIE_SECURE: bool = False
+    JWT_TOKEN_LOCATION: list = ['cookies', 'headers']
+    JWT_COOKIE_CSRF_PROTECT: bool = True
     ALGORITHM: str = 'HS256'
 
     class Config:

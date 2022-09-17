@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required  # noqa: F401
-
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
@@ -11,12 +10,14 @@ from user.payload_models import (
     UserID,
     UserLoginPayload,
 )
-from user.repositories import NotFoundError
-from user.services.user_auth import EmailAlreadyExist, InvalidPassword, NoAccessError, UserService
+from user.services.user_auth import UserService
+from utils.exceptions import EmailAlreadyExist, InvalidPassword, NoAccessError, NotFoundError
 
+from .components.user_schemas import Session as SessionSchem
 from .utils import check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
+user_blueprint = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
@@ -82,6 +83,10 @@ def login():
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
+
+    response = jsonify()
+    response.set_cookie('access_token', access_token)
+    response.set_cookie('refresh_token', refresh_token)
     return (
         jsonify(
             message='Login successful',
@@ -140,6 +145,7 @@ def change_password(user_id):
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
+    return jsonify(message='Password changed successful'), HTTPStatus.OK
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
@@ -152,10 +158,6 @@ def refresh_token():
      security:
       - BearerAuth: []
      summary: Обновление токенов
-     requestBody:
-       content:
-        application/json:
-         schema: RefreshToken
      responses:
        '200':
          description: Refresh successful
@@ -166,9 +168,9 @@ def refresh_token():
     """
 
     _request = {
-        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
-        'refresh': '',  # что здесь должно быть?
+        'refresh': request.headers.get('Authorization'),
     }
     try:
         access_token, refresh_token = UserService().refresh_tokens(RefreshTokensPayload(**_request))
@@ -187,6 +189,7 @@ def refresh_token():
 
 
 @auth_blueprint.route('/logout', methods=('POST',))
+@jwt_required()
 def logout():
     """
     Выход пользователя из аккаунта.
@@ -208,7 +211,7 @@ def logout():
        - Auth
     """
     _request = {
-        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
         'from_all': request.json.get('from_all'),
     }
@@ -219,7 +222,7 @@ def logout():
     return jsonify(message='User logged out'), HTTPStatus.OK
 
 
-@auth_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
+@user_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
 @check_permission(permission=0)
 def login_history(user_id):
     """
@@ -242,7 +245,7 @@ def login_history(user_id):
        '403':
          description: Permission denied
      tags:
-       - Auth
+       - User
     """
 
     _request = {
@@ -253,6 +256,6 @@ def login_history(user_id):
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     return (
-        jsonify(message='Refresh successful', history=user_histories),
+        jsonify(message='Refresh successful', history=[SessionSchem().dumps(histori) for histori in user_histories]),
         HTTPStatus.OK,
     )

@@ -40,6 +40,11 @@ def create_permission():
             'code': 2,
             'description': 'Может смотреть платный контент',
         },
+        {
+            'name': 'Moderator',
+            'code': 3,
+            'description': 'Может работать с role',
+        },
     ]
 
     for perm in default_permission:
