@@ -8,12 +8,17 @@ from flask_jwt_extended import JWTManager
 from flask_security import Security
 from flask_swagger_ui import get_swaggerui_blueprint
 
+from api.v1.components.perm_schemas import Permission
+from api.v1.components.role_schemas import Role
 from api.v1.components.user_schemas import ChangePassword, Login, Logout, RefreshToken, Register
+from api.v1.permission import permissions_blueprint
+from api.v1.role import role_blueprint
 from api.v1.user import auth_blueprint
 from core.config import settings
 from db.db import init_db
 from models.permissions import create_permission
 from models.role import create_role
+from models.user import create_super
 
 jwt = JWTManager()
 app = Flask(__name__)
@@ -26,6 +31,8 @@ swagger_ui = get_swaggerui_blueprint(
 
 app.register_blueprint(swagger_ui, url_prefix=settings.swagger.SWAGGER_URL)
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(role_blueprint)
+app.register_blueprint(permissions_blueprint)
 
 
 def init_jwt(app: Flask, config: object = settings.jwt) -> None:
@@ -52,13 +59,18 @@ def init_spec(app: Flask) -> None:
         'scheme': 'bearer',
         'bearerFormat': 'JWT',
     }
-
+    # security
     spec.components.security_scheme('BearerAuth', security_scheme_bearer)
+    # Auth
     spec.components.schema('Register', schema=Register)
     spec.components.schema('Login', schema=Login)
     spec.components.schema('ChangePassword', schema=ChangePassword)
     spec.components.schema('RefreshToken', schema=RefreshToken)
     spec.components.schema('Logout', schema=Logout)
+    # Role
+    spec.components.schema('Role', schema=Role)
+    # Permission
+    spec.components.schema('Permission', schema=Permission)
 
     for tag in settings.swagger.SPEC_TAGS:
         spec.tag(tag)
@@ -80,6 +92,7 @@ def main():
     init_jwt(app)
     init_security(app)
     init_spec(app)
+    create_super()  # ЗАГЛУШКА! (пока не реализован метод добавления через терминал)
     create_permission()
     create_role()
 

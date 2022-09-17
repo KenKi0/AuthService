@@ -1,7 +1,9 @@
 from datetime import datetime
 
 from flask_security import UserMixin
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.exc import IntegrityError, PendingRollbackError
 
 from db.db import db
 from models.utils import BaseModel
@@ -28,3 +30,17 @@ class UserInfo(BaseModel):
 
     def __repr__(self) -> str:
         return f'Login: {self.id} {self.date}'
+
+
+# TODO ЗАГЛУШКА! (пока не реализован метод добавления через терминал)
+def create_super():
+    _super = {
+        'username': 'Admin',
+        'password': 'admin',
+        'email': 'admin@admin.com',
+        'is_super': True,
+    }
+    try:
+        User(**_super).set()
+    except (PendingRollbackError, UniqueViolation, IntegrityError):
+        return
