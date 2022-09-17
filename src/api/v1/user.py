@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt, get_jwt_identity, jwt_required  # noqa: F401
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
@@ -10,9 +10,10 @@ from user.payload_models import (
     UserID,
     UserLoginPayload,
 )
-from user.repositories import NotFoundError
-from user.services.user_auth import EmailAlreadyExist, InvalidPassword, NoAccessError, UserService
+from user.services.user_auth import UserService
+from utils.exceptions import EmailAlreadyExist, InvalidPassword, NoAccessError, NotFoundError
 
+from .components.user_schemas import Session as SessionSchem
 from .utils import check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
@@ -81,6 +82,10 @@ def login():
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
+
+    response = jsonify()
+    response.set_cookie('access_token', access_token)
+    response.set_cookie('refresh_token', refresh_token)
     return (
         jsonify(
             message='Login successful',
@@ -142,7 +147,7 @@ def change_password(user_id):
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
-@jwt_required(refresh=True)
+@jwt_required(refresh=True, locations='cookies')
 def refresh_token():
     """
     Обновление токенов.
@@ -151,10 +156,11 @@ def refresh_token():
      security:
       - BearerAuth: []
      summary: Обновление токенов
-     requestBody:
-       content:
-        application/json:
-         schema: RefreshToken
+     parameters:
+      - name: "refresh_token_cookie"
+        in: cookies
+        type: string
+        required: true
      responses:
        '200':
          description: Refresh successful
@@ -165,9 +171,9 @@ def refresh_token():
     """
 
     _request = {
-        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
-        'refresh': '',  # что здесь должно быть?
+        'refresh': request.cookies.get('refresh_token'),
     }
     try:
         access_token, refresh_token = UserService().refresh_tokens(RefreshTokensPayload(**_request))
@@ -186,6 +192,7 @@ def refresh_token():
 
 
 @auth_blueprint.route('/logout', methods=('POST',))
+@jwt_required()
 def logout():
     """
     Выход пользователя из аккаунта.
@@ -207,7 +214,7 @@ def logout():
        - Auth
     """
     _request = {
-        'user_id': get_jwt_identity(),  # зачем проверять id если мы его и так берем из get_jwt_identity?
+        'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
         'from_all': request.json.get('from_all'),
     }
@@ -252,6 +259,6 @@ def login_history(user_id):
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     return (
-        jsonify(message='Refresh successful', history=user_histories),
+        jsonify(message='Refresh successful', history=[SessionSchem().dumps(histori) for histori in user_histories]),
         HTTPStatus.OK,
     )

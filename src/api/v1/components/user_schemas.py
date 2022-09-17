@@ -36,3 +36,9 @@ class RefreshToken(Schema):
 
 class Logout(Schema):
     from_all = fields.Boolean(description='Выход со всех устройств')
+
+
+class Session(Schema):
+    device_id = fields.UUID(description='Device', required=True)
+    user_id = fields.UUID(description='User', required=True)
+    auth_date = fields.DateTime(description='Login data', required=True)
