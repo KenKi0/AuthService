@@ -113,14 +113,6 @@
                     }
                 ],
                 "summary": "\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0442\u043e\u043a\u0435\u043d\u043e\u0432",
-                "parameters": [
-                    {
-                        "name": "refresh_token_cookie",
-                        "in": "cookies",
-                        "type": "string",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Refresh successful"
@@ -164,7 +156,7 @@
                 ]
             }
         },
-        "/api/v1/auth/login-history/{user_id}": {
+        "/api/v1/user/login-history/{user_id}": {
             "get": {
                 "security": [
                     {
@@ -192,7 +184,7 @@
                     }
                 },
                 "tags": [
-                    "Auth"
+                    "User"
                 ]
             }
         },
@@ -767,6 +759,11 @@
             "Register": {
                 "type": "object",
                 "properties": {
+                    "username": {
+                        "type": "string",
+                        "description": "name",
+                        "example": "TestUser"
+                    },
                     "password": {
                         "type": "string",
                         "description": "password",
@@ -776,11 +773,6 @@
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
-                    },
-                    "username": {
-                        "type": "string",
-                        "description": "name",
-                        "example": "TestUser"
                     }
                 },
                 "required": [
@@ -830,15 +822,15 @@
             "Tokens": {
                 "type": "object",
                 "properties": {
-                    "access_token": {
-                        "type": "string",
-                        "description": "access_token",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
-                    },
                     "refresh_token": {
                         "type": "string",
                         "description": "refresh_token",
                         "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiYzI2MzBlZmQtMjU1Ni00NDdiLTk1OGItMzZlOTIxNjg3MjM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJhMjliMTI4ZC0zOWM3LTRjMTUtYmRhMi0wMjc4MzM5YjczMTMiLCJuYmYiOjE2NjMxMjQyMzIsImV4cCI6MTY2Mzk4ODIzMiwicGVybWlzc2lvbnMiOltdLCJpc19zdXBlciI6ZmFsc2V9.5Wmo7M7klrxO4_c47JI2xWAWSGljCS9cvn3D0VWUXmo"
+                    },
+                    "access_token": {
+                        "type": "string",
+                        "description": "access_token",
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
                     }
                 },
                 "required": [
@@ -866,15 +858,15 @@
             "Role": {
                 "type": "object",
                 "properties": {
-                    "description": {
-                        "type": "string",
-                        "description": "description",
-                        "example": "Test"
-                    },
                     "name": {
                         "type": "string",
                         "description": "name",
                         "example": "test_role"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "description",
+                        "example": "Test"
                     }
                 },
                 "required": [
@@ -885,20 +877,20 @@
             "Permission": {
                 "type": "object",
                 "properties": {
-                    "description": {
-                        "type": "string",
-                        "description": "description",
-                        "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
+                    "code": {
+                        "type": "integer",
+                        "description": "code",
+                        "example": 0
                     },
                     "name": {
                         "type": "string",
                         "description": "name",
                         "example": "Default user"
                     },
-                    "code": {
-                        "type": "integer",
-                        "description": "code",
-                        "example": 0
+                    "description": {
+                        "type": "string",
+                        "description": "description",
+                        "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
                     }
                 },
                 "required": [

@@ -13,7 +13,7 @@ from api.v1.components.role_schemas import Role
 from api.v1.components.user_schemas import ChangePassword, Login, Logout, RefreshToken, Register
 from api.v1.permission import permissions_blueprint
 from api.v1.role import role_blueprint
-from api.v1.user import auth_blueprint
+from api.v1.user import auth_blueprint, user_blueprint
 from core.config import settings
 from db.db import init_db
 from models.permissions import create_permission
@@ -31,6 +31,7 @@ swagger_ui = get_swaggerui_blueprint(
 
 app.register_blueprint(swagger_ui, url_prefix=settings.swagger.SWAGGER_URL)
 app.register_blueprint(auth_blueprint)
+app.register_blueprint(user_blueprint)
 app.register_blueprint(role_blueprint)
 app.register_blueprint(permissions_blueprint)
 

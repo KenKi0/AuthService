@@ -17,6 +17,7 @@ from .components.user_schemas import Session as SessionSchem
 from .utils import check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
+user_blueprint = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
 
 @auth_blueprint.route('/register', methods=('POST',))
@@ -147,7 +148,7 @@ def change_password(user_id):
 
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
-@jwt_required(refresh=True, locations='cookies')
+@jwt_required(refresh=True)
 def refresh_token():
     """
     Обновление токенов.
@@ -156,11 +157,6 @@ def refresh_token():
      security:
       - BearerAuth: []
      summary: Обновление токенов
-     parameters:
-      - name: "refresh_token_cookie"
-        in: cookies
-        type: string
-        required: true
      responses:
        '200':
          description: Refresh successful
@@ -173,7 +169,7 @@ def refresh_token():
     _request = {
         'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
-        'refresh': request.cookies.get('refresh_token'),
+        'refresh': request.headers.get('Authorization'),
     }
     try:
         access_token, refresh_token = UserService().refresh_tokens(RefreshTokensPayload(**_request))
@@ -225,7 +221,7 @@ def logout():
     return jsonify(message='User logged out'), HTTPStatus.OK
 
 
-@auth_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
+@user_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
 @check_permission(permission=0)
 def login_history(user_id):
     """
@@ -248,7 +244,7 @@ def login_history(user_id):
        '403':
          description: Permission denied
      tags:
-       - Auth
+       - User
     """
 
     _request = {
