@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
@@ -79,8 +80,8 @@ def init_spec(app: Flask) -> None:
     for fn_name in app.view_functions:
         view_fn = app.view_functions[fn_name]
         spec.path(view=view_fn)
-
-    with open('src/static/swagger.json', 'w') as file:
+    swagger_path = Path(Path(__file__).parent, 'static/swagger.json')
+    with open(swagger_path, 'w') as file:
         json.dump(spec.to_dict(), file, indent=4)
 
     @app.route('/static/<path:path>')
@@ -88,7 +89,7 @@ def init_spec(app: Flask) -> None:
         return send_from_directory('static', path)
 
 
-def main():
+def main(app: Flask = app):
     init_db(app)
     init_jwt(app)
     init_security(app)
@@ -101,4 +102,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(app)
