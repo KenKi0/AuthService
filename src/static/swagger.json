@@ -759,20 +759,20 @@
             "Register": {
                 "type": "object",
                 "properties": {
-                    "password": {
+                    "username": {
                         "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
+                        "description": "name",
+                        "example": "TestUser"
                     },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
                     },
-                    "username": {
+                    "password": {
                         "type": "string",
-                        "description": "name",
-                        "example": "TestUser"
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -784,15 +784,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "password": {
-                        "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
-                    },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -877,15 +877,15 @@
             "Permission": {
                 "type": "object",
                 "properties": {
-                    "code": {
-                        "type": "integer",
-                        "description": "code",
-                        "example": 0
-                    },
                     "name": {
                         "type": "string",
                         "description": "name",
                         "example": "Default user"
+                    },
+                    "code": {
+                        "type": "integer",
+                        "description": "code",
+                        "example": 0
                     },
                     "description": {
                         "type": "string",
