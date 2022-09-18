@@ -1,9 +1,11 @@
 import uuid
 from datetime import datetime
 
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.exc import IntegrityError, PendingRollbackError
 
-from db.db import db
+from db import db
 
 
 class BaseModel(db.Model):
@@ -24,6 +26,8 @@ class BaseModel(db.Model):
         try:
             db.session.add(self)
             db.session.commit()
-        # TODO определить какой будет Exception, обработать его
-        except Exception:
+        except (PendingRollbackError, UniqueViolation, IntegrityError):
             raise
+
+    def cond_delete(self):
+        self.is_deleted = True
