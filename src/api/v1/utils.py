@@ -9,15 +9,12 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from flask_pydantic_spec import FlaskPydanticSpec
 
 from core.config import settings
 from db.db import db
 from models.permissions import Permission, RolePermission
 from models.role import RoleUser
 from models.user import User
-
-api = FlaskPydanticSpec('flask')
 
 
 def get_user_permissions(user_id) -> list[int]:

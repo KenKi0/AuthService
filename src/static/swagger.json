@@ -759,11 +759,6 @@
             "Register": {
                 "type": "object",
                 "properties": {
-                    "username": {
-                        "type": "string",
-                        "description": "name",
-                        "example": "TestUser"
-                    },
                     "password": {
                         "type": "string",
                         "description": "password",
@@ -773,6 +768,11 @@
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "name",
+                        "example": "TestUser"
                     }
                 },
                 "required": [
@@ -784,15 +784,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "password": {
-                        "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
-                    },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
