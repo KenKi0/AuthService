@@ -1,4 +1,6 @@
-from .protocol import NotFoundError, UserFilter, UserRepositoryProtocol, UserTmStorageRepositoryProtocol
+from utils.exceptions import NotFoundError
+
+from .protocol import UserFilter, UserRepositoryProtocol, UserTmStorageRepositoryProtocol
 from .redis_repo import UserTmStorageRepository
 from .sqlalchemy_repo import UserSqlalchemyRepository
 
