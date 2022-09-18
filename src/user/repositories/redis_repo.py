@@ -7,17 +7,21 @@ from user.repositories.protocol import TMStorageTransaction, UserTmStorageReposi
 
 
 class UserTmStorageRepository(UserTmStorageRepositoryProtocol):
-    def get(self, key: str | bytes) -> typing.Any:
+    @staticmethod
+    def get(key: str | bytes) -> typing.Any:
         return redis.get(key)
 
-    def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
+    @staticmethod
+    def set(key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
         redis.set(key, value, ex=ex)
 
-    def delete(self, *keys: str | bytes) -> None:
+    @staticmethod
+    def delete(*keys: str | bytes) -> None:
         redis.delete(*keys)
 
+    @staticmethod
     @contextmanager
-    def transaction(self) -> TMStorageTransaction:
+    def transaction() -> TMStorageTransaction:
         pipeline = redis.pipeline()
         try:
             yield pipeline

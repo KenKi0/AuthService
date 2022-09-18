@@ -31,3 +31,5 @@ def session_scope() -> Session:
     except Exception:
         db.session.rollback()
         raise
+    finally:
+        db.session.remove()

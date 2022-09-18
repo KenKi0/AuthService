@@ -1,5 +1,5 @@
-from user.layer_models import User as UserLayer
+from .services.user_auth import UserService
 
 __all__ = [
-    'UserLayer',
+    'UserService',
 ]
