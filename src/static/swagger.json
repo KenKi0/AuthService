@@ -784,15 +784,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "password": {
-                        "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
-                    },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
