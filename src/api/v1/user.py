@@ -2,6 +2,8 @@ from http import HTTPStatus
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_security.utils import hash_password
+
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
@@ -42,7 +44,7 @@ def register():
     _request = {
         'username': request.json.get('username'),
         'email': request.json.get('email'),
-        'password': request.json.get('password'),
+        'password': hash_password(request.json.get('password')),
     }
     try:
         UserService().register(UserCreatePayload(**_request))
@@ -74,7 +76,7 @@ def login():
     """
     _request = {
         'email': request.json.get('email'),
-        'password': request.json.get('password'),
+        'password': hash_password(request.json.get('password')),
         'user_agent': request.headers.get('User-Agent'),
     }
     try:
@@ -134,8 +136,8 @@ def change_password(user_id):
 
     _request = {
         'user_id': user_id,
-        'old_password': request.json.get('old_password'),
-        'new_password': request.json.get('new_password'),
+        'old_password': hash_password(request.json.get('old_password')),
+        'new_password': hash_password(request.json.get('new_password')),
     }
     try:
         UserService().change_password(ChangePasswordPayload(**_request))

@@ -764,15 +764,15 @@
                         "description": "password",
                         "example": "Test_12345"
                     },
-                    "email": {
-                        "type": "string",
-                        "description": "email",
-                        "example": "test_2@test.com"
-                    },
                     "username": {
                         "type": "string",
                         "description": "name",
                         "example": "TestUser"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "email",
+                        "example": "test_2@test.com"
                     }
                 },
                 "required": [
@@ -784,15 +784,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "email": {
-                        "type": "string",
-                        "description": "email",
-                        "example": "test_2@test.com"
-                    },
                     "password": {
                         "type": "string",
                         "description": "password",
                         "example": "Test_12345"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "email",
+                        "example": "test_2@test.com"
                     }
                 },
                 "required": [
