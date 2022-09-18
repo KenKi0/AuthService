@@ -78,11 +78,17 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         return layer_models.UserDevice.from_orm(device)
 
     def get_allowed_devices(self, user_id: uuid.UUID) -> list[layer_models.UserDevice]:
-        devices = AllowedDevice.query.filter(AllowedDevice.user_id == user_id, AllowedDevice.is_deleted == False).all()
+        devices = AllowedDevice.query.filter(
+            AllowedDevice.user_id == user_id,
+            AllowedDevice.is_deleted == False,
+        ).all()
         return [layer_models.UserDevice.from_orm(device) for device in devices]
 
     def get_history(self, user_id: uuid.UUID) -> list[layer_models.Session]:
-        user_histories = Session.query.filter(Session.user_id == user_id, Session.is_deleted == False).all()
+        user_histories = Session.query.filter(
+            Session.user_id == user_id,
+            Session.is_deleted == False,
+        ).all()
         return [layer_models.Session.from_orm(user_history) for user_history in user_histories]
 
     def add_new_session(self, session: payload_models.SessionPayload) -> layer_models.Session:

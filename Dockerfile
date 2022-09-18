@@ -23,4 +23,4 @@ COPY src/ ./src
 COPY tests ./tests
 COPY .flake8 .flake8
 
-CMD cd src && python3 main.py
+CMD cd src && python3 wsgi.py
