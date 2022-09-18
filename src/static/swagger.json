@@ -803,15 +803,15 @@
             "ChangePassword": {
                 "type": "object",
                 "properties": {
-                    "old_password": {
-                        "type": "string",
-                        "description": "old_password",
-                        "example": "Test_12345"
-                    },
                     "new_password": {
                         "type": "string",
                         "description": "new_password",
                         "example": "Test_67890"
+                    },
+                    "old_password": {
+                        "type": "string",
+                        "description": "old_password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -858,15 +858,15 @@
             "Role": {
                 "type": "object",
                 "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "name",
-                        "example": "test_role"
-                    },
                     "description": {
                         "type": "string",
                         "description": "description",
                         "example": "Test"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "name",
+                        "example": "test_role"
                     }
                 },
                 "required": [
@@ -877,10 +877,12 @@
             "Permission": {
                 "type": "object",
                 "properties": {
+
                     "code": {
                         "type": "integer",
                         "description": "code",
                         "example": 0
+
                     },
                     "name": {
                         "type": "string",
@@ -891,6 +893,7 @@
                         "type": "string",
                         "description": "description",
                         "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
+
                     }
                 },
                 "required": [
