@@ -124,13 +124,13 @@ class UserService:
         access_token = create_access_token(
             identity=user.id,
             additional_claims=additional_claims,
-            expires_delta=settings.jwt.ACCESS_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.ACCESS_TOKEN_EXP,
         )
         refresh_token = create_refresh_token(
             identity=user.id,
-            expires_delta=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.REFRESH_TOKEN_EXP,
         )
-        self.tms_repo.set(tms_key, refresh_token, ex=settings.jwt.REFRESH_TOKEN_EXP_DELTA)
+        self.tms_repo.set(tms_key, refresh_token, ex=settings.jwt.REFRESH_TOKEN_EXP)
         return access_token, refresh_token
 
     def get_history(self, user: payload_models.UserID) -> list[layer_models.Session]:

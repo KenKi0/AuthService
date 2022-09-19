@@ -54,6 +54,9 @@ class JWTSettings(BaseConfig):
     SECRET_KEY: str = '245585dbb5cbe2f151742298d61d364880575bff0bdcbf4ae383f0180e7e47dd'
     REFRESH_TOKEN_EXP: timedelta = timedelta(days=10)
     ACCESS_TOKEN_EXP: timedelta = timedelta(minutes=20)
+    JWT_COOKIE_SECURE: bool = False
+    JWT_TOKEN_LOCATION: list = ['cookies', 'headers']
+    JWT_COOKIE_CSRF_PROTECT: bool = True
     ALGORITHM: str = 'HS256'
 
     class Config:
@@ -65,12 +68,32 @@ class SecuritySettings(BaseConfig):
     SECURITY_PASSWORD_HASH: str = 'bcrypt'
 
 
+class SwaggerSettings(BaseConfig):
+    SPEC_TAGS: list = [
+        {
+            'name': 'Auth',
+            'description': 'Auth',
+        },
+        {
+            'name': 'User',
+            'description': 'User data',
+        },
+        {
+            'name': 'Role',
+            'description': 'Roles',
+        },
+    ]
+    SWAGGER_URL: str = '/swagger'
+    API_URL: str = '/static/swagger.json'
+
+
 class ProjectSettings(BaseConfig):
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
     flask: FlaskSettings = FlaskSettings()
     jwt: JWTSettings = JWTSettings()
     security: SecuritySettings = SecuritySettings()
+    swagger: SwaggerSettings = SwaggerSettings()
 
 
 settings = ProjectSettings()

@@ -23,4 +23,7 @@ COPY src/ ./src
 COPY tests ./tests
 COPY .flake8 .flake8
 
-CMD cd src && python3 main.py
+CMD cd src && \
+    export FLASK_APP=main.py && \
+    flask create_sudo $ADMIN_NAME $ADMIN_MAIL $ADMIN_PSWD && \
+    python3 wsgi.py
