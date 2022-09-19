@@ -62,6 +62,21 @@ class UserRepositoryProtocol(typing.Protocol):
     def get_history(self, user_id: uuid.UUID) -> list[layer_models.Session]:
         ...
 
+    def get_user_roles(self, user_id: uuid.UUID) -> list[layer_models.Role]:
+        ...
+
+    def add_role_for_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
+        """
+        :raises NotFoundError: если роль с указанным id несуществует
+        """
+        ...
+
+    def delete_role_from_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
+        """
+        :raises NotFoundError: если связи RoleUser с указанными id user и role несуществует
+        """
+        ...
+
 
 class TMStorageTransaction(typing.Protocol):
     def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:
