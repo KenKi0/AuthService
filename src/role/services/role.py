@@ -17,14 +17,13 @@ class RoleService:
         Создать роль с указанными данными.
 
         :param new_role: данные роли
-        :raises RoleAlreadyExist: если роль с указанным именем уже сущетвует
+        :raises UniqueConstraintError: если роль с указанным именем уже сущетвует
         """
         try:
-            self.repo.get_by_name(new_role.name)
-        except exc.NotFoundError:
             self.repo.create(new_role)
-            return
-        raise exc.RoleAlreadyExist
+        except exc.UniqueConstraintError:
+            # TODO логировать ошибку
+            raise
 
     def get(self, role_id: uuid.UUID) -> layer_models.Role:
         """
@@ -55,10 +54,11 @@ class RoleService:
         :param update_role: новые данные роли
         :return: обновленную роль
         :raises NotFoundError: если роль с указанным id несуществует
+        :raises UniqueConstraintError: если роль с указанным именем уже существует
         """
         try:
             return self.repo.update(role_id, update_role)
-        except exc.NotFoundError:
+        except (exc.NotFoundError, exc.UniqueConstraintError):
             # TODO логировать ошибку
             raise
 
@@ -81,12 +81,12 @@ class RoleService:
 
         :param role_id: id роли к которому нужно добавить пермишан
         :param permission_id: id пермишана для добавления к роли
-        :raises NotFoundError: если роль ли пермишан с указанными id несуществуют
+        :raises NotFoundError: если роль или пермишан с указанными id несуществуют
+        :raises UniqueConstraintError: сли указанная связь между ролью и пермишаном уже существует
         """
         try:
-            self.repo.get_by_id(role_id)
             return self.repo.add_permission_for_role(role_id, permission_id)
-        except exc.NotFoundError:
+        except (exc.NotFoundError, exc.UniqueConstraintError):
             # TODO логировать ошибку
             raise
 
