@@ -30,11 +30,15 @@ class UserRepositoryProtocol(typing.Protocol):
         ...
 
     def create(self, user: payload_models.UserCreatePayload) -> layer_models.User:
+        """
+        :raises UniqueConstraintError: если пользователь с указанным email уже существует
+        """
         ...
 
     def update(self, user_id: uuid.UUID, user: payload_models.UserUpdatePayload) -> layer_models.User:
         """
         :raises NotFoundError: если не была найдена запись для обновления в базе
+        :raises UniqueConstraintError: если пользователь с указанным email уже существует
         """
         ...
 
@@ -45,6 +49,10 @@ class UserRepositoryProtocol(typing.Protocol):
         ...
 
     def add_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
+        """
+        :raises UniqueConstraintError: если устройство с указанным user_agent для указанного пользователя
+         уже существует
+        """
         ...
 
     def get_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
@@ -68,6 +76,7 @@ class UserRepositoryProtocol(typing.Protocol):
     def add_role_for_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
         """
         :raises NotFoundError: если роль с указанным id несуществует
+        :raises UniqueConstraintError: если указанная связь между ролью и пользователем уже сущетсвует
         """
         ...
 

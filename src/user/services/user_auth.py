@@ -31,12 +31,10 @@ class UserService:
         :raises EmailAlreadyExist:
         """
         try:
-            self.db_repo.get_by_email(new_user.email)
-        except exc.NotFoundError:
             new_user.password = hash_password(new_user.password)
             self.db_repo.create(new_user)
-            return
-        raise exc.EmailAlreadyExist
+        except exc.UniqueConstraintError as ex:
+            raise exc.EmailAlreadyExist from ex
 
     def login(self, user_payload: payload_models.UserLoginPayload) -> tuple[types.AccessToken, types.RefreshToken]:
         """
@@ -181,11 +179,11 @@ class UserService:
         :param user_id: id пользователя
         :param role_id: id роли
         :raises NotFoundError: если пользователь или роль с указанными id несущетвуют
+        :raises UniqueConstraintError: если указанная связь между ролью и пользователем уже сущетсвует
         """
         try:
-            self.db_repo.get_by_id(user_id)
             return self.db_repo.add_role_for_user(user_id, role_id)
-        except exc.NotFoundError:
+        except (exc.NotFoundError, exc.UniqueConstraintError):
             # TODO логировать ошибку
             raise
 

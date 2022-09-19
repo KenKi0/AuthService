@@ -1,6 +1,8 @@
 import uuid
 from dataclasses import asdict
 
+import sqlalchemy.exc as sqlalch_exc
+
 import user.layer_models as layer_models
 import user.payload_models as payload_models
 import user.repositories.protocol as protocol
@@ -37,19 +39,25 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
     def create(self, user: payload_models.UserCreatePayload) -> layer_models.User:
         new_user = User(**user.dict())
         role = Role.query.filter(Role.name == DEFAULT_USER_ROLE).first()
-        with session_scope() as db_session:
-            db_session.add(new_user)
-            db_session.flush()
-            role_user = RoleUser(user_id=new_user.id, role_id=role.id)
-            db_session.add(role_user)
-            return layer_models.User.from_orm(new_user)
+        try:
+            with session_scope() as db_session:
+                db_session.add(new_user)
+                db_session.flush()
+                role_user = RoleUser(user_id=new_user.id, role_id=role.id)
+                db_session.add(role_user)
+                return layer_models.User.from_orm(new_user)
+        except sqlalch_exc.IntegrityError as ex:
+            raise exc.UniqueConstraintError from ex
 
     def update(self, user_id: uuid.UUID, new_user: payload_models.UserUpdatePayload) -> layer_models.User:
-        with session_scope():
-            user = User.query.filter(User.id == user_id)
-            if user.count() != 1:
-                raise exc.NotFoundError
-            user.update(new_user.dict(exclude_none=True))
+        try:
+            with session_scope():
+                user = User.query.filter(User.id == user_id)
+                if user.count() != 1:
+                    raise exc.NotFoundError
+                user.update(new_user.dict(exclude_none=True))
+        except sqlalch_exc.IntegrityError as ex:
+            raise exc.UniqueConstraintError from ex
         return layer_models.User.from_orm(user.first())
 
     def delete(self, user_id: uuid.UUID) -> layer_models.User | None:
@@ -63,10 +71,13 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
 
     def add_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
         new_device = AllowedDevice(**device.dict())
-        with session_scope() as db_session:
-            db_session.add(new_device)
-            db_session.flush()
-            return layer_models.UserDevice.from_orm(new_device)
+        try:
+            with session_scope() as db_session:
+                db_session.add(new_device)
+                db_session.flush()
+                return layer_models.UserDevice.from_orm(new_device)
+        except sqlalch_exc.IntegrityError as ex:
+            raise exc.UniqueConstraintError from ex
 
     def get_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
         device = AllowedDevice.query.filter(
@@ -107,12 +118,15 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         return [layer_models.Role.from_orm(role) for role in user_roles]
 
     def add_role_for_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
-        role = Role.query.filter(Role.id == role_id)
-        if role.count() != 1:
-            raise exc.NotFoundError
         role_user = RoleUser(role_id=role_id, user_id=user_id)
-        with session_scope() as session:
-            session.add(role_user)
+        try:
+            with session_scope() as session:
+                session.add(role_user)
+        except sqlalch_exc.IntegrityError as ex:
+            if exc.INTEGRITY_KEY_DIDNT_EXIST_MSG in str(ex):
+                raise exc.NotFoundError from ex
+            if exc.INTEGRITY_UNIQUE_CONSTRAINT_MSG in str(ex):
+                raise exc.UniqueConstraintError from ex
 
     def delete_role_from_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
         role_user = RoleUser.query.filter(RoleUser.user_id == user_id, RoleUser.role_id == role_id)
