@@ -85,19 +85,16 @@ def login():
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
 
-    response = jsonify()
+    response = jsonify(
+        message='Login successful',
+        tokens={
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        },
+    )
     response.set_cookie('access_token', access_token)
     response.set_cookie('refresh_token', refresh_token)
-    return (
-        jsonify(
-            message='Login successful',
-            tokens={
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-            },
-        ),
-        HTTPStatus.OK,
-    )
+    return response, HTTPStatus.OK
 
 
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
@@ -159,6 +156,11 @@ def refresh_token():
      security:
       - BearerAuth: []
      summary: Обновление токенов
+     parameters:
+      - name: refresh_token
+        in: cookies
+        type: string
+        required: true
      responses:
        '200':
          description: Refresh successful
@@ -171,22 +173,22 @@ def refresh_token():
     _request = {
         'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
-        'refresh': request.headers.get('Authorization'),
+        'refresh': request.cookies.get('refresh_token'),
     }
     try:
         access_token, refresh_token = UserService().refresh_tokens(RefreshTokensPayload(**_request))
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
-    return (
-        jsonify(
-            message='Refresh successful',
-            tokens={
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-            },
-        ),
-        HTTPStatus.OK,
+    response = jsonify(
+        message='Refresh successful',
+        tokens={
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        },
     )
+    response.set_cookie('access_token', access_token)
+    response.set_cookie('refresh_token', refresh_token)
+    return response, HTTPStatus.OK
 
 
 @auth_blueprint.route('/logout', methods=('POST',))
