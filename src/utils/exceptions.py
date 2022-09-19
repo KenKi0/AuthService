@@ -12,3 +12,7 @@ class EmailAlreadyExist(Exception):
 
 class NotFoundError(Exception):
     ...
+
+
+class RoleAlreadyExist(Exception):
+    ...
