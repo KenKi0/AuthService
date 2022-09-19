@@ -16,3 +16,7 @@ class NotFoundError(Exception):
 
 class RoleAlreadyExist(Exception):
     ...
+
+
+class UniqueConstraintError(Exception):
+    ...
