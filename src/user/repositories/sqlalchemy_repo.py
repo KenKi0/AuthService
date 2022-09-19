@@ -57,6 +57,7 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
             user = User.query.filter(User.id == user_id, User.is_deleted == False)
             if user.count() != 1:
                 raise exc.NotFoundError
+            user = user.first()
             user.cond_delete()
         return layer_models.User.from_orm(user)
 
