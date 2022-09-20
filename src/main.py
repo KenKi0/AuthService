@@ -1,15 +1,12 @@
 import json
 from pathlib import Path
 
-import click
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
 from flask import Flask, send_from_directory
-from flask.cli import with_appcontext
 from flask_jwt_extended import JWTManager
 from flask_security import Security
-from flask_security.utils import hash_password
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from api.v1.components.perm_schemas import Permission
@@ -19,10 +16,8 @@ from api.v1.permission import permissions_blueprint
 from api.v1.role import role_blueprint
 from api.v1.user import auth_blueprint, user_blueprint
 from core.config import settings
-from db.db import db, init_db
-from models.permissions import create_permission
-from models.role import create_role
-from models.user import User
+from db.db import init_db
+from utils.command import init_cli
 
 jwt = JWTManager()
 
@@ -103,27 +98,6 @@ def init_spec(app: Flask) -> None:
         return send_from_directory('static', path)
 
 
-def init_cli(app: Flask):
-    @with_appcontext
-    @app.cli.command('create_sudo')
-    @click.argument('name')
-    @click.argument('mail')
-    @click.argument('password')
-    def create_sudo(name: str, mail: str, password: str):
-        _admin = {
-            'username': name,
-            'password': hash_password(password),
-            'email': mail,
-            'is_super': True,
-        }
-        admin = User.query.filter_by(email=_admin['email']).first()
-        if admin:
-            return
-        admin = User(**_admin)
-        db.session.add(admin)
-        db.session.commit()
-
-
 def create_app():
 
     app = Flask(__name__)
@@ -139,8 +113,6 @@ def create_app():
 
 
 def main(app: Flask):
-    create_permission()
-    create_role()
     app.run(debug=True, host='0.0.0.0', port=5000)
 
 
