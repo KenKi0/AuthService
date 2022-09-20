@@ -25,7 +25,8 @@ class UniqueConstraintError(Exception):
 class AttemptDeleteProtectedObjectError(Exception):
     ...
 
+
+
 INTEGRITY_UNIQUE_CONSTRAINT_MSG = 'already exist'
 INTEGRITY_KEY_DIDNT_EXIST_MSG = 'not present in table'
-
 
