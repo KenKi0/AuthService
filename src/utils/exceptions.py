@@ -20,3 +20,7 @@ class RoleAlreadyExist(Exception):
 
 class UniqueConstraintError(Exception):
     ...
+
+
+class AttemptDeleteProtectedObjectError(Exception):
+    ...

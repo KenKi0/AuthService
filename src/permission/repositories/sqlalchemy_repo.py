@@ -12,16 +12,10 @@ from models.permissions import Permission
 
 class PermissionSqlalchemyRepository(protocol.PermissionRepositoryProtocol):
     def get_by_id(self, perm_id: uuid.UUID) -> layer_models.Permission:
-        perm = Permission.query.filter(Permission.id == perm_id)
-        if perm.count() != 1:
+        perm = Permission.query.filter(Permission.id == perm_id).first()
+        if not perm:
             raise exc.NotFoundError
-        return layer_models.Permission.from_orm(perm.first())
-
-    def get_by_code(self, code: int) -> layer_models.Permission:
-        perm = Permission.query.filter(Permission.code == code)
-        if perm.count() != 1:
-            raise exc.NotFoundError
-        return layer_models.Permission.from_orm(perm.first())
+        return layer_models.Permission.from_orm(perm)
 
     def get_multi(self) -> list[layer_models.Permission]:
         perms = Permission.query.all()
@@ -50,7 +44,9 @@ class PermissionSqlalchemyRepository(protocol.PermissionRepositoryProtocol):
 
     def delete(self, perm_id: uuid.UUID) -> None:
         with session_scope():
-            perm = Permission.query.filter(Permission.id == perm_id)
-            if perm.count() != 1:
+            perm = Permission.query.filter(Permission.id == perm_id).first()
+            if not perm:
                 raise exc.NotFoundError
-            perm.update({'is_deleted': True})
+            if perm.protected:
+                raise exc.AttemptDeleteProtectedObjectError
+            perm.is_deleted = True
