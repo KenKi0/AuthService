@@ -9,6 +9,7 @@ from models.utils import BaseModel
 
 class Role(BaseModel, RoleMixin):
     __tablename__ = 'roles'
+    protected = db.Column(db.Boolean(), nullable=False, default=False)
     name = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     description = db.Column(db.String(length=150), nullable=False)
 
