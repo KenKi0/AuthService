@@ -9,6 +9,7 @@ from flask import Flask, send_from_directory
 from flask.cli import with_appcontext
 from flask_jwt_extended import JWTManager
 from flask_security import Security
+from flask_security.utils import hash_password
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from api.v1.components.perm_schemas import Permission
@@ -102,8 +103,8 @@ def init_cli(app: Flask):
     def create_sudo(name: str, mail: str, password: str):
         _admin = {
             'username': name,
-            'password': mail,
-            'email': password,
+            'password': hash_password(password),
+            'email': mail,
             'is_super': True,
         }
         admin = User.query.filter_by(email=_admin['email']).first()

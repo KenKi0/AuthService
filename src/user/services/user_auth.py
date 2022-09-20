@@ -1,3 +1,5 @@
+import uuid
+
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_security.utils import hash_password, verify_password
 
@@ -29,12 +31,10 @@ class UserService:
         :raises EmailAlreadyExist:
         """
         try:
-            self.db_repo.get_by_email(new_user.email)
-        except repo.NotFoundError:
             new_user.password = hash_password(new_user.password)
             self.db_repo.create(new_user)
-            return
-        raise exc.EmailAlreadyExist
+        except exc.UniqueConstraintError as ex:
+            raise exc.EmailAlreadyExist from ex
 
     def login(self, user_payload: payload_models.UserLoginPayload) -> tuple[types.AccessToken, types.RefreshToken]:
         """
@@ -47,13 +47,13 @@ class UserService:
         """
         user = self.db_repo.get_by_email(user_payload.email)
         if not user:
-            raise repo.NotFoundError
+            raise exc.NotFoundError
         if not verify_password(user_payload.password, user.password):
             raise exc.InvalidPassword
         device = payload_models.UserDevicePayload(user_id=user.id, user_agent=user_payload.user_agent)
         try:
             user_device = self.db_repo.get_allowed_device(device)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO подтвердить вход с нового устройства через email
             user_device = self.db_repo.add_allowed_device(device)
         self.db_repo.add_new_session(payload_models.SessionPayload(user_id=user.id, device_id=user_device.id))
@@ -65,16 +65,16 @@ class UserService:
         access_token = create_access_token(
             identity=user.id,
             additional_claims=additional_claims,
-            expires_delta=settings.jwt.ACCESS_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.ACCESS_TOKEN_EXP,
         )
         refresh_token = create_refresh_token(
             identity=user.id,
-            expires_delta=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.REFRESH_TOKEN_EXP,
         )
         self.tms_repo.set(
             user_payload.user_agent + str(user.id),
             refresh_token,
-            ex=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            ex=settings.jwt.REFRESH_TOKEN_EXP,
         )
         return access_token, refresh_token
 
@@ -88,7 +88,7 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(passwords.user_id)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO логировать ошибку
             raise
         if not verify_password(passwords.old_password, user.password):
@@ -109,7 +109,7 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(token.user_id)
-        except repo.NotFoundError:
+        except exc.NotFoundError:
             # TODO логировать ошибку
             raise
         tms_key = token.user_agent + str(token.user_id)
@@ -124,13 +124,13 @@ class UserService:
         access_token = create_access_token(
             identity=user.id,
             additional_claims=additional_claims,
-            expires_delta=settings.jwt.ACCESS_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.ACCESS_TOKEN_EXP,
         )
         refresh_token = create_refresh_token(
             identity=user.id,
-            expires_delta=settings.jwt.REFRESH_TOKEN_EXP_DELTA,
+            expires_delta=settings.jwt.REFRESH_TOKEN_EXP,
         )
-        self.tms_repo.set(tms_key, refresh_token, ex=settings.jwt.REFRESH_TOKEN_EXP_DELTA)
+        self.tms_repo.set(tms_key, refresh_token, ex=settings.jwt.REFRESH_TOKEN_EXP)
         return access_token, refresh_token
 
     def get_history(self, user: payload_models.UserID) -> list[layer_models.Session]:
@@ -156,3 +156,47 @@ class UserService:
             ]
         tms_keys = [device.user_agent + str(logout.user_id) for device in devices]
         self.tms_repo.delete(*tms_keys)
+
+    def get_roles(self, user_id: uuid.UUID) -> list[layer_models.Role]:
+        """
+        Получить все роли пользователя.
+
+        :param user_id: id пользователя
+        :return: список с ролями
+        :raises NotFoundError: если пользователя с таким id несущетвует
+        """
+        try:
+            self.db_repo.get_by_id(user_id)
+        except exc.NotFoundError:
+            # TODO логировать ошибку
+            raise
+        return self.db_repo.get_user_roles(user_id)
+
+    def add_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
+        """
+        Выдать роль пользователю.
+
+        :param user_id: id пользователя
+        :param role_id: id роли
+        :raises NotFoundError: если пользователь или роль с указанными id несущетвуют
+        :raises UniqueConstraintError: если указанная связь между ролью и пользователем уже сущетсвует
+        """
+        try:
+            return self.db_repo.add_role_for_user(user_id, role_id)
+        except (exc.NotFoundError, exc.UniqueConstraintError):
+            # TODO логировать ошибку
+            raise
+
+    def remove_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
+        """
+        Отобрать роль у пользователя.
+
+        :param user_id: id пользователя
+        :param role_id: id роли
+        :raises NotFoundError: если связи между указанными пользователем и ролью несущетвует
+        """
+        try:
+            return self.db_repo.delete_role_from_user(user_id, role_id)
+        except (exc.NotFoundError, exc.UniqueConstraintError):
+            # TODO логировать ошибку
+            raise
