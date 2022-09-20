@@ -74,6 +74,6 @@ class PermissionService:
         """
         try:
             self.repo.delete(perm_id)
-        except exc.NotFoundError as ex:
+        except (exc.NotFoundError, exc.AttemptDeleteProtectedObjectError) as ex:
             logger.info('Ошибка при попытке удалить пермишан: \n %s', str(ex))
             raise

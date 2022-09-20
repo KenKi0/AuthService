@@ -255,7 +255,7 @@ def login_history(user_id):
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     return (
-        jsonify(message='Refresh successful', history=[SessionSchem().dumps(histori) for histori in user_histories]),
+        jsonify(history=[SessionSchem().dumps(histori) for histori in user_histories]),
         HTTPStatus.OK,
     )
 
