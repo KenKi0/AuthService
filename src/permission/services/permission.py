@@ -4,6 +4,9 @@ import permission.layer_models as layer_models
 import permission.payload_models as payload_models
 import permission.repositories as repo
 import utils.exceptions as exc
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 db_repo = repo.get_perm_db_repo()
 
@@ -22,8 +25,8 @@ class PermissionService:
         """
         try:
             return self.repo.get_by_id(perm_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке получить пермишан: \n %s', str(ex))
             raise
 
     def get_all(self) -> list[layer_models.Permission]:
@@ -43,8 +46,8 @@ class PermissionService:
         """
         try:
             self.repo.create(new_perm)
-        except exc.UniqueConstraintError:
-            # TODO логировать ошибку
+        except exc.UniqueConstraintError as ex:
+            logger.info('Ошибка при попытке создать пермишан: \n %s', str(ex))
             raise
 
     def update(self, perm_id: uuid.UUID, update_perm: payload_models.PermissionUpdate) -> None:
@@ -58,8 +61,8 @@ class PermissionService:
         """
         try:
             self.repo.update(perm_id, update_perm)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
+        except (exc.NotFoundError, exc.UniqueConstraintError) as ex:
+            logger.info('Ошибка при попытке обновить данные пермишана: \n %s', str(ex))
             raise
 
     def delete(self, perm_id: uuid.UUID) -> None:
@@ -71,6 +74,6 @@ class PermissionService:
         """
         try:
             self.repo.delete(perm_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке удалить пермишан: \n %s', str(ex))
             raise
