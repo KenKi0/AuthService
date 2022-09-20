@@ -7,6 +7,7 @@ from models.utils import BaseModel
 
 class Role(BaseModel, RoleMixin):
     __tablename__ = 'roles'
+    protected = db.Column(db.Boolean(), nullable=False, default=False)
     name = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     description = db.Column(db.String(length=150), nullable=False)
     protected = db.Column(db.Boolean(), nullable=False, default=False)
@@ -20,3 +21,4 @@ class RoleUser(BaseModel):
     __table_args__ = (db.UniqueConstraint('user_id', 'role_id'), {'schema': 'auth'})
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'), nullable=False)
     role_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.roles.id'), nullable=False)
+

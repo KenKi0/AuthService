@@ -28,7 +28,9 @@ class PermissionSqlalchemyRepository(protocol.PermissionRepositoryProtocol):
                 session.add(new_perm)
                 session.flush()
                 return layer_models.Permission.from_orm(new_perm)
+
         except sqlalch_exc.IntegrityError as ex:
+
             raise exc.UniqueConstraintError from ex
 
     def update(self, perm_id: uuid.UUID, update_perm: payload_models.PermissionUpdate) -> layer_models.Permission:

@@ -3,7 +3,9 @@ from .sqlalchemy_repo import PermissionSqlalchemyRepository
 
 
 def get_perm_db_repo() -> PermissionRepositoryProtocol:
+
     return PermissionSqlalchemyRepository()
+
 
 
 __all__ = [
