@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 
 from role.payload_models import RoleCreate, RoleUpdate
 from role.services.role import RoleService
-from utils.exceptions import NotFoundError, UniqueConstraintError
+from utils.exceptions import AttemptDeleteProtectedObjectError, NotFoundError, UniqueConstraintError
 
 from .components.perm_schemas import Permission as PermissionSchem
 from .components.role_schemas import Role as RoleSchem
@@ -25,23 +25,19 @@ def roles():
     ---
     get:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Получение списка всех ролей из базы
      responses:
        '200':
          description: Ok
-       '204':
-         description: Role list is empty
        '403':
          description: Permission denied
      tags:
        - Role
     """
-    roles = service.get_all()
-    if not roles:
-        return jsonify(message='Role list is empty'), HTTPStatus.NO_CONTENT
+
     return (
-        jsonify(roles=[RoleSchem().dumps(role) for role in roles]),
+        jsonify(roles=[RoleSchem().dumps(role) for role in service.get_all()]),
         HTTPStatus.OK,
     )
 
@@ -55,7 +51,7 @@ def role():
     ---
     post:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Добавление новой роли
      requestBody:
        content:
@@ -100,7 +96,7 @@ def role_by_id(role_id):  # noqa: C901
     ---
     get:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Просмотр роли по id
      parameters:
       - name: role_id
@@ -110,8 +106,6 @@ def role_by_id(role_id):  # noqa: C901
      responses:
        '200':
          description: Ok
-       '204':
-         description: Permissions list is empty
        '403':
          description: Permission denied
        '404':
@@ -120,7 +114,7 @@ def role_by_id(role_id):  # noqa: C901
        - Role
     patch:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Изменить роль по id
      parameters:
       - name: role_id
@@ -144,7 +138,7 @@ def role_by_id(role_id):  # noqa: C901
        - Role
     delete:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Удаление роли по id
      parameters:
       - name: role_id
@@ -158,6 +152,8 @@ def role_by_id(role_id):  # noqa: C901
          description: Permission denied
        '404':
          description: Not found
+       '409':
+         description: Protected Role
      tags:
        - Role
     """
@@ -167,23 +163,9 @@ def role_by_id(role_id):  # noqa: C901
         }
 
         try:
-            service.get(**_request)
+            role, permissions = service.get(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-
-        # TODO Не возвращается список прав
-
-        role = Role.query.filter_by(id=_request['role_id']).first()
-        if not role:
-            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        permissions = (
-            db.session.query(Permission)
-            .join(RolePermission)
-            .filter(RolePermission.role_id == _request['role_id'])
-            .all()
-        )
-        if not permissions:
-            return jsonify(message='Role list is empty'), HTTPStatus.NO_CONTENT
         return (
             jsonify(
                 role=RoleSchem().dumps(role),
@@ -197,6 +179,7 @@ def role_by_id(role_id):  # noqa: C901
             'name': request.json.get('name'),
             'description': request.json.get('description'),
         }
+
         try:
             service.update(role_id=role_id, update_role=RoleUpdate(**_request))
         except NotFoundError:
@@ -214,6 +197,8 @@ def role_by_id(role_id):  # noqa: C901
             service.delete(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
+        except AttemptDeleteProtectedObjectError:
+            return jsonify(message='Protected Role'), HTTPStatus.CONFLICT
         return jsonify(message='Role was deleted sucessfully'), HTTPStatus.OK
 
 
@@ -232,7 +217,7 @@ def role_permissions(role_id):
     ---
     post:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Добавление уровня доступа к роли
      parameters:
       - name: role_id
@@ -246,17 +231,17 @@ def role_permissions(role_id):
      responses:
        '200':
          description: Permission assigned to role
-       '204':
-         description: Permissions list is empty
        '403':
          description: Permission denied
+       '404':
+         description: Not found
        '409':
          description: Permission is already in use
      tags:
        - Permission
     delete:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Удаление уровня доступа у роли
      parameters:
       - name: role_id
@@ -270,12 +255,10 @@ def role_permissions(role_id):
      responses:
        '200':
          description: Ok
-       '204':
-         description: Permissions list is empty
        '403':
          description: Permission denied
-       '409':
-         description: It's basic Permission
+       '404':
+         description: Not found
      tags:
        - Role
     """
@@ -296,14 +279,12 @@ def role_permissions(role_id):
 
     if request.method == 'DELETE':
         _request = {
-            'perm_id': request.args.get('permission_id'),
+            'permission_id': request.args.get('permission_id'),
             'role_id': role_id,
         }
+
         try:
             service.remove_permission(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        except ...:
-            # TODO
-            return jsonify(message="It's basic Permission"), HTTPStatus.CONFLICT
         return jsonify(message='Permission was deleted sucessfully'), HTTPStatus.OK

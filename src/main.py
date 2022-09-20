@@ -60,14 +60,23 @@ def init_spec(app: Flask) -> None:
         info={'description': 'Auth service'},
         plugins=[FlaskPlugin(), MarshmallowPlugin()],
     )
-    security_scheme_bearer = {
+    security_scheme_access = {
         'type': 'http',
         'description': 'Enter JWT Bearer token',
         'scheme': 'bearer',
         'bearerFormat': 'JWT',
+        'name': 'access_token',
+    }
+    security_scheme_refresh = {
+        'type': 'http',
+        'description': 'Enter JWT Bearer token',
+        'scheme': 'bearer',
+        'bearerFormat': 'JWT',
+        'name': 'refresh_token',
     }
     # security
-    spec.components.security_scheme('BearerAuth', security_scheme_bearer)
+    spec.components.security_scheme('AccessAuth', security_scheme_access)
+    spec.components.security_scheme('RefreshAuth', security_scheme_refresh)
     # Auth
     spec.components.schema('Register', schema=Register)
     spec.components.schema('Login', schema=Login)
