@@ -9,6 +9,7 @@ class Role(BaseModel, RoleMixin):
     __tablename__ = 'roles'
     name = db.Column(db.String(length=150), unique=True, nullable=False, index=True)
     description = db.Column(db.String(length=150), nullable=False)
+    protected = db.Column(db.Boolean(), nullable=False, default=False)
 
     def __repr__(self) -> str:
         return f'Role: {self.name} {self.id}'
