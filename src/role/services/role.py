@@ -25,7 +25,7 @@ class RoleService:
             # TODO логировать ошибку
             raise
 
-    def get(self, role_id: uuid.UUID) -> layer_models.Role:
+    def get(self, role_id: uuid.UUID) -> tuple[layer_models.Role, list[layer_models.Permission]]:
         """
         Получить роль по его id.
 

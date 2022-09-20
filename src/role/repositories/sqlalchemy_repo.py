@@ -7,7 +7,7 @@ import role.payload_models as payload_models
 import role.repositories.protocol as protocol
 import utils.exceptions as exc
 from db import session_scope
-from models.permissions import RolePermission
+from models.permissions import Permission, RolePermission
 from models.role import Role
 
 
@@ -16,17 +16,13 @@ class RoleSqlalchemyRepository(protocol.RoleRepositoryProtocol):
         roles = Role.query.all()
         return [layer_models.Role.from_orm(role) for role in roles]
 
-    def get_by_id(self, role_id: uuid.UUID) -> layer_models.Role:
-        role = Role.query.filter(Role.id == role_id)
-        if role.count() == 0:
+    def get_by_id(self, role_id: uuid.UUID) -> tuple[layer_models.Role, list[layer_models.Permission]]:
+        role = Role.query.filter(Role.id == role_id).first()
+        if not role:
             raise exc.NotFoundError
-        return layer_models.Role.from_orm(role.first())
-
-    def get_by_name(self, name: str) -> layer_models.Role:
-        role = Role.query.filter(Role.name == name)
-        if role.count() == 0:
-            raise exc.NotFoundError
-        return layer_models.Role.from_orm(role.first())
+        permissions = Permission.query.join(RolePermission).filter(RolePermission.role_id == role_id).all()
+        permissions = [layer_models.Permission.from_orm(perm) for perm in permissions]
+        return layer_models.Role.from_orm(role), permissions
 
     def update(self, role_id: uuid.UUID, updated_role: payload_models.RoleUpdate) -> layer_models.Role:
         try:
@@ -51,10 +47,12 @@ class RoleSqlalchemyRepository(protocol.RoleRepositoryProtocol):
 
     def delete(self, role_id: uuid.UUID) -> None:
         with session_scope():
-            role = Role.query.filter(Role.id == role_id)
-            if role.count() != 1:
+            role = Role.query.filter(Role.id == role_id).first()
+            if not role:
                 raise exc.NotFoundError
-            role.update({'is_deleted': True})
+            if role.protected:
+                raise exc.AttemptDeleteProtectedObjectError
+            role.is_deleted = True
 
     def add_permission_for_role(self, role_id: uuid.UUID, permission_id: uuid.UUID) -> None:
         new_link = RolePermission(role_id=role_id, perm_id=permission_id)

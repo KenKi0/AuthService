@@ -9,13 +9,7 @@ class RoleRepositoryProtocol(typing.Protocol):
     def get_multi(self) -> list[layer_models.Role]:
         ...
 
-    def get_by_id(self, role_id: uuid.UUID) -> layer_models.Role:
-        """
-        :raises NotFoundError:
-        """
-        ...
-
-    def get_by_name(self, name: str) -> layer_models.Role:
+    def get_by_id(self, role_id: uuid.UUID) -> tuple[layer_models.Role, list[layer_models.Permission]]:
         """
         :raises NotFoundError:
         """
