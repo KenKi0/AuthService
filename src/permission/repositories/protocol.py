@@ -12,12 +12,6 @@ class PermissionRepositoryProtocol(typing.Protocol):
         """
         ...
 
-    def get_by_code(self, code: int) -> layer_models.Permission:
-        """
-        :raises NotFoundError:
-        """
-        ...
-
     def get_multi(self) -> list[layer_models.Permission]:
         ...
 

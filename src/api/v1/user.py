@@ -95,8 +95,6 @@ def login():
             'refresh_token': refresh_token,
         },
     )
-    response.set_cookie('access_token', access_token)
-    response.set_cookie('refresh_token', refresh_token)
     return response, HTTPStatus.OK
 
 
@@ -109,7 +107,7 @@ def change_password(user_id):
     ---
     patch:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Смена пароля
      parameters:
       - name: user_id
@@ -157,13 +155,8 @@ def refresh_token():
     ---
     post:
      security:
-      - BearerAuth: []
+      - RefreshAuth: []
      summary: Обновление токенов
-     parameters:
-      - name: refresh_token
-        in: cookies
-        type: string
-        required: true
      responses:
        '200':
          description: Refresh successful
@@ -176,7 +169,7 @@ def refresh_token():
     _request = {
         'user_id': get_jwt_identity(),
         'user_agent': request.headers.get('User-Agent'),
-        'refresh': request.cookies.get('refresh_token'),
+        'refresh': request.headers.get('Authorization')[7:],
     }
     try:
         access_token, refresh_token = service.refresh_tokens(RefreshTokensPayload(**_request))
@@ -189,8 +182,6 @@ def refresh_token():
             'refresh_token': refresh_token,
         },
     )
-    response.set_cookie('access_token', access_token)
-    response.set_cookie('refresh_token', refresh_token)
     return response, HTTPStatus.OK
 
 
@@ -202,7 +193,7 @@ def logout():
     ---
     post:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Выход пользователя из аккаунта
      requestBody:
        content:
@@ -224,7 +215,9 @@ def logout():
     try:
         service.logout(LogoutPayload(**_request))
     except NoAccessError:
+
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+
     return jsonify(message='User logged out'), HTTPStatus.OK
 
 
@@ -236,7 +229,7 @@ def login_history(user_id):
     ---
     get:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Получить историю посещений
      parameters:
       - name: user_id
@@ -283,7 +276,7 @@ def user_roles(user_id):  # noqa: C901
     ---
     get:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Получение списка всех ролей пользователя
      parameters:
       - name: user_id
@@ -303,7 +296,7 @@ def user_roles(user_id):  # noqa: C901
        - User
     post:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Добавление роли пользователю
      parameters:
       - name: user_id
@@ -327,7 +320,7 @@ def user_roles(user_id):  # noqa: C901
        - User
     delete:
      security:
-      - BearerAuth: []
+      - AccessAuth: []
      summary: Удаление роли у пользователя
      parameters:
       - name: user_id

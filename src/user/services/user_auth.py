@@ -9,6 +9,9 @@ import user.repositories as repo
 import utils.exceptions as exc
 import utils.types as types
 from core.config import settings
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 db_repo = repo.get_user_db_repo()
 tms_repo = repo.get_user_tms_repo()
@@ -34,6 +37,7 @@ class UserService:
             new_user.password = hash_password(new_user.password)
             self.db_repo.create(new_user)
         except exc.UniqueConstraintError as ex:
+            logger.info('Ошибка при попытке зарегестрировать нового пользователя: \n %s', str(ex))
             raise exc.EmailAlreadyExist from ex
 
     def login(self, user_payload: payload_models.UserLoginPayload) -> tuple[types.AccessToken, types.RefreshToken]:
@@ -88,8 +92,8 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(passwords.user_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке изменить пароль пользователя: \n %s', str(ex))
             raise
         if not verify_password(passwords.old_password, user.password):
             raise exc.InvalidPassword
@@ -109,8 +113,8 @@ class UserService:
         """
         try:
             user = self.db_repo.get_by_id(token.user_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке обновить токены пользователя: \n %s', str(ex))
             raise
         tms_key = token.user_agent + str(token.user_id)
         current_token = self.tms_repo.get(tms_key)
@@ -167,8 +171,8 @@ class UserService:
         """
         try:
             self.db_repo.get_by_id(user_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке получить роли пользователя: \n %s', str(ex))
             raise
         return self.db_repo.get_user_roles(user_id)
 
@@ -183,8 +187,8 @@ class UserService:
         """
         try:
             return self.db_repo.add_role_for_user(user_id, role_id)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
+        except (exc.NotFoundError, exc.UniqueConstraintError) as ex:
+            logger.info('Ошибка при попытке присвоить роль пользователю: \n %s', str(ex))
             raise
 
     def remove_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
@@ -197,6 +201,6 @@ class UserService:
         """
         try:
             return self.db_repo.delete_role_from_user(user_id, role_id)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке отобрать роль у пользователя: \n %s', str(ex))
             raise
