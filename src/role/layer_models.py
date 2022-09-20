@@ -13,3 +13,8 @@ class DefaultModel(BaseModel):
 class Role(DefaultModel):
     name: str
     description: str
+
+
+class Permission(DefaultModel):
+    name: str
+    code: int

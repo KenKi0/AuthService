@@ -9,7 +9,7 @@ LOG_DEFAULT_HANDLERS = [
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'verbose': {'format': LOG_FORMAT},
     },
@@ -35,6 +35,6 @@ LOGGING = {
 logging.config.dictConfig(LOGGING)
 
 
-def logger(_name_: str) -> logging:
+def get_logger(name: str) -> logging:
     """Логгер."""
-    return logging.getLogger(_name_)
+    return logging.getLogger(name)

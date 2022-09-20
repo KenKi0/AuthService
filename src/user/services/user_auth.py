@@ -1,5 +1,3 @@
-import uuid
-
 from flask_jwt_extended import create_access_token, create_refresh_token
 from flask_security.utils import hash_password, verify_password
 
@@ -31,10 +29,12 @@ class UserService:
         :raises EmailAlreadyExist:
         """
         try:
+            self.db_repo.get_by_email(new_user.email)
+        except exc.NotFoundError:
             new_user.password = hash_password(new_user.password)
             self.db_repo.create(new_user)
-        except exc.UniqueConstraintError as ex:
-            raise exc.EmailAlreadyExist from ex
+            return
+        raise exc.EmailAlreadyExist
 
     def login(self, user_payload: payload_models.UserLoginPayload) -> tuple[types.AccessToken, types.RefreshToken]:
         """
@@ -156,47 +156,3 @@ class UserService:
             ]
         tms_keys = [device.user_agent + str(logout.user_id) for device in devices]
         self.tms_repo.delete(*tms_keys)
-
-    def get_roles(self, user_id: uuid.UUID) -> list[layer_models.Role]:
-        """
-        Получить все роли пользователя.
-
-        :param user_id: id пользователя
-        :return: список с ролями
-        :raises NotFoundError: если пользователя с таким id несущетвует
-        """
-        try:
-            self.db_repo.get_by_id(user_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
-            raise
-        return self.db_repo.get_user_roles(user_id)
-
-    def add_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
-        """
-        Выдать роль пользователю.
-
-        :param user_id: id пользователя
-        :param role_id: id роли
-        :raises NotFoundError: если пользователь или роль с указанными id несущетвуют
-        :raises UniqueConstraintError: если указанная связь между ролью и пользователем уже сущетсвует
-        """
-        try:
-            return self.db_repo.add_role_for_user(user_id, role_id)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
-            raise
-
-    def remove_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
-        """
-        Отобрать роль у пользователя.
-
-        :param user_id: id пользователя
-        :param role_id: id роли
-        :raises NotFoundError: если связи между указанными пользователем и ролью несущетвует
-        """
-        try:
-            return self.db_repo.delete_role_from_user(user_id, role_id)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
-            raise

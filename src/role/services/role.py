@@ -4,6 +4,9 @@ import role.layer_models as layer_models
 import role.payload_models as payload_models
 import role.repositories as repo
 import utils.exceptions as exc
+from core.logger import get_logger
+
+logger = get_logger(__name__)
 
 db_repo = repo.get_role_db_repo()
 
@@ -21,11 +24,11 @@ class RoleService:
         """
         try:
             self.repo.create(new_role)
-        except exc.UniqueConstraintError:
-            # TODO логировать ошибку
+        except exc.UniqueConstraintError as ex:
+            logger.info('Ошибка при попытке создать роль: \n %s', str(ex))
             raise
 
-    def get(self, role_id: uuid.UUID) -> layer_models.Role:
+    def get(self, role_id: uuid.UUID) -> tuple[layer_models.Role, list[layer_models.Permission]]:
         """
         Получить роль по его id.
 
@@ -35,8 +38,8 @@ class RoleService:
         """
         try:
             return self.repo.get_by_id(role_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке получить роль: \n %s', str(ex))
             raise
 
     def get_all(self) -> list[layer_models.Role]:
@@ -58,8 +61,8 @@ class RoleService:
         """
         try:
             return self.repo.update(role_id, update_role)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
+        except (exc.NotFoundError, exc.UniqueConstraintError) as ex:
+            logger.info('Ошибка при попытке обновить данные роли: \n %s', str(ex))
             raise
 
     def delete(self, role_id) -> None:
@@ -71,8 +74,8 @@ class RoleService:
         """
         try:
             return self.repo.delete(role_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке удалить роль: \n %s', str(ex))
             raise
 
     def add_permission(self, role_id: uuid.UUID, permission_id: uuid.UUID) -> None:
@@ -86,8 +89,8 @@ class RoleService:
         """
         try:
             return self.repo.add_permission_for_role(role_id, permission_id)
-        except (exc.NotFoundError, exc.UniqueConstraintError):
-            # TODO логировать ошибку
+        except (exc.NotFoundError, exc.UniqueConstraintError) as ex:
+            logger.info('Ошибка при попытке присвоить пермишан к роли: \n %s', str(ex))
             raise
 
     def remove_permission(self, role_id: uuid.UUID, permission_id: uuid.UUID) -> None:
@@ -100,6 +103,6 @@ class RoleService:
         """
         try:
             return self.repo.delete_permission_from_role(role_id, permission_id)
-        except exc.NotFoundError:
-            # TODO логировать ошибку
+        except exc.NotFoundError as ex:
+            logger.info('Ошибка при попытке отобрать пермишан у роли: \n %s', str(ex))
             raise
