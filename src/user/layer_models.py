@@ -33,3 +33,8 @@ class Permission(DefaultModel):
     name: str
     code: int
     description: str
+
+
+class Role(DefaultModel):
+    name: str
+    description: str

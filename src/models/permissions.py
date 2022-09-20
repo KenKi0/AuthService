@@ -14,7 +14,7 @@ class Permission(BaseModel):
     description = db.Column(db.String(length=150), nullable=False)
 
     def __repr__(self) -> str:
-        return f'Role: {self.name} {self.id}'
+        return f'Permission: {self.name} {self.id}'
 
 
 class RolePermission(BaseModel):
