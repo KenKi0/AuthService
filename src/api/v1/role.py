@@ -166,26 +166,31 @@ def role_by_id(role_id):  # noqa: C901
             'role_id': role_id,
         }
 
+        try:
+            service.get(**_request)
+        except NotFoundError:
+            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
+
         # TODO Не возвращается список прав
 
-        # role = Role.query.filter_by(id=_request['role_id']).first()
-        # if not role:
-        #     return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        # permissions = (
-        #     db.session.query(Permission)
-        #     .join(RolePermission)
-        #     .filter(RolePermission.role_id == _request['role_id'])
-        #     .all()
-        # )
-        # if not permissions:
-        #     return jsonify(message='Role list is empty'), HTTPStatus.NO_CONTENT
-        # return (
-        #     jsonify(
-        #         role=RoleSchem().dumps(role),
-        #         permissions=[PermissionSchem().dumps(perm) for perm in permissions],
-        #     ),
-        #     HTTPStatus.OK,
-        # )
+        role = Role.query.filter_by(id=_request['role_id']).first()
+        if not role:
+            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
+        permissions = (
+            db.session.query(Permission)
+            .join(RolePermission)
+            .filter(RolePermission.role_id == _request['role_id'])
+            .all()
+        )
+        if not permissions:
+            return jsonify(message='Role list is empty'), HTTPStatus.NO_CONTENT
+        return (
+            jsonify(
+                role=RoleSchem().dumps(role),
+                permissions=[PermissionSchem().dumps(perm) for perm in permissions],
+            ),
+            HTTPStatus.OK,
+        )
 
     if request.method == 'PATCH':
         _request = {
@@ -210,3 +215,95 @@ def role_by_id(role_id):  # noqa: C901
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
         return jsonify(message='Role was deleted sucessfully'), HTTPStatus.OK
+
+
+@role_blueprint.route(
+    '/permissions/<uuid:role_id>',
+    methods=(
+        'POST',
+        'DELETE',
+    ),
+)
+@jwt_required()
+@check_permission(permission=3)
+def role_permissions(role_id):
+    """
+    Добавление | Удаление пермишина у роли.
+    ---
+    post:
+     security:
+      - BearerAuth: []
+     summary: Добавление уровня доступа к роли
+     parameters:
+      - name: role_id
+        in: path
+        type: string
+        required: true
+      - name: permission_id
+        in: query
+        type: string
+        required: true
+     responses:
+       '200':
+         description: Permission assigned to role
+       '204':
+         description: Permissions list is empty
+       '403':
+         description: Permission denied
+       '409':
+         description: Permission is already in use
+     tags:
+       - Permission
+    delete:
+     security:
+      - BearerAuth: []
+     summary: Удаление уровня доступа у роли
+     parameters:
+      - name: role_id
+        in: path
+        type: string
+        required: true
+      - name: permission_id
+        in: query
+        type: string
+        required: true
+     responses:
+       '200':
+         description: Ok
+       '204':
+         description: Permissions list is empty
+       '403':
+         description: Permission denied
+       '409':
+         description: It's basic Permission
+     tags:
+       - Role
+    """
+
+    if request.method == 'POST':
+        _request = {
+            'permission_id': request.args.get('permission_id'),
+            'role_id': role_id,
+        }
+
+        try:
+            service.add_permission(**_request)
+        except NotFoundError:
+            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
+        except UniqueConstraintError:
+            return jsonify(message='Permissions is already in use'), HTTPStatus.CONFLICT
+        return jsonify(message='Permissions assigned to role'), HTTPStatus.OK
+
+    if request.method == 'DELETE':
+        _request = {
+            'perm_id': request.args.get('permission_id'),
+            'role_id': role_id,
+        }
+        try:
+            service.remove_permission(**_request)
+        except NotFoundError:
+            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
+        except ...:
+            # TODO
+            return jsonify(message="It's basic Permission"), HTTPStatus.CONFLICT
+        return jsonify(message='Permission was deleted sucessfully'), HTTPStatus.OK
