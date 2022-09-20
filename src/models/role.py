@@ -26,7 +26,7 @@ class RoleUser(BaseModel):
 
 def create_role():
     default_role = [
-        {'name': 'User', 'description': 'new user'},
+        {'name': 'User', 'description': 'new user', 'protected': True},
         {'name': 'Subscriber', 'description': 'subscriber'},
         {'name': 'Admin', 'description': 'admin'},
     ]

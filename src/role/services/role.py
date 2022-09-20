@@ -74,7 +74,7 @@ class RoleService:
         """
         try:
             return self.repo.delete(role_id)
-        except exc.NotFoundError as ex:
+        except (exc.NotFoundError, exc.AttemptDeleteProtectedObjectError) as ex:
             logger.info('Ошибка при попытке удалить роль: \n %s', str(ex))
             raise
 
