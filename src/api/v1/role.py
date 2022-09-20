@@ -5,8 +5,7 @@ from flask_jwt_extended import jwt_required
 
 from db.db import db
 from models.permissions import Permission, RolePermission
-from models.role import Role, RoleUser
-from models.user import User
+from models.role import Role
 
 from .components.perm_schemas import Permission as PermissionSchem
 from .components.role_schemas import Role as RoleSchem
@@ -45,132 +44,6 @@ def roles():
         jsonify(roles=[RoleSchem().dumps(role) for role in roles]),
         HTTPStatus.OK,
     )
-
-
-@role_blueprint.route(
-    '/roles/<uuid:user_id>',
-    methods=(
-        'GET',
-        'POST',
-        'DELETE',
-    ),
-)
-@jwt_required()
-@check_permission(permission=3)
-def user_roles(user_id):
-    """
-    Получение | Добавление | Удаление ролей пользователя.
-    ---
-    get:
-     security:
-      - BearerAuth: []
-     summary: Получение списка всех ролей пользователя
-     parameters:
-      - name: user_id
-        in: path
-        type: string
-        required: true
-     responses:
-       '200':
-         description: Ok
-       '204':
-         description: Role list is empty
-       '403':
-         description: Permission denied
-     tags:
-       - User
-    post:
-     security:
-      - BearerAuth: []
-     summary: Добавление роли пользователю
-     parameters:
-      - name: user_id
-        in: path
-        type: string
-        required: true
-      - name: role_id
-        in: query
-        type: string
-        required: true
-     responses:
-       '200':
-         description: Role assigned to user
-       '204':
-         description: Role list is empty
-       '403':
-         description: Permission denied
-       '409':
-         description: Role is already in use
-     tags:
-       - User
-    delete:
-     security:
-      - BearerAuth: []
-     summary: Удаление роли у пользователя
-     parameters:
-      - name: user_id
-        in: path
-        type: string
-        required: true
-      - name: role_id
-        in: query
-        type: string
-        required: true
-     responses:
-       '200':
-         description: Ok
-       '204':
-         description: Role list is empty
-       '403':
-         description: Permission denied
-       '409':
-         description: Role is already deleted
-     tags:
-       - User
-    """
-    if request.method == 'GET':
-        _request = {
-            'user_id': user_id,
-        }
-        user = User.query.filter_by(id=_request['user_id']).first()
-        if not user:
-            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        roles = db.session.query(Role).join(RoleUser).filter(RoleUser.user_id == _request['user_id']).all()
-        if not roles:
-            return jsonify(message='Role list is empty'), HTTPStatus.NO_CONTENT
-        return (
-            jsonify(roles=[RoleSchem().dumps(role) for role in roles]),
-            HTTPStatus.OK,
-        )
-
-    if request.method == 'POST':
-        _request = {
-            'user_id': user_id,
-            'role_id': request.args.get('role_id'),
-        }
-        user = User.query.filter_by(id=_request['user_id']).first()
-        if not user:
-            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        user_roles = RoleUser.query.filter_by(role_id=_request['role_id'], user_id=_request['user_id']).first()
-        if user_roles:
-            return jsonify(message='Role is already in use'), HTTPStatus.CONFLICT
-        RoleUser(**_request).set()
-        return jsonify(message='Role assigned to user'), HTTPStatus.OK
-
-    if request.method == 'DELETE':
-        _request = {
-            'user_id': user_id,
-            'role_id': request.args.get('role_id'),
-        }
-        user = User.query.filter_by(id=_request['user_id']).first()
-        if not user:
-            return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        user_role = RoleUser.query.filter_by(role_id=_request['role_id'], user_id=_request['user_id']).first()
-        if not user_role:
-            return jsonify(message='Role is already deleted'), HTTPStatus.CONFLICT
-        db.session.delete(user_role)
-        db.session.commit()
-        return jsonify(message='Role was deleted sucessfully'), HTTPStatus.OK
 
 
 @role_blueprint.route('/role', methods=('POST',))
