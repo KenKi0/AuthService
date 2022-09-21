@@ -170,10 +170,25 @@
                         "in": "path",
                         "type": "string",
                         "required": true
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "type": "integer",
+                        "required": false
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "type": "integer",
+                        "required": false
                     }
                 ],
                 "responses": {
                     "200": {
+                        "description": "User logged out"
+                    },
+                    "204": {
                         "description": "User logged out"
                     },
                     "400": {
@@ -767,15 +782,15 @@
             "ChangePassword": {
                 "type": "object",
                 "properties": {
-                    "new_password": {
-                        "type": "string",
-                        "description": "new_password",
-                        "example": "Test_67890"
-                    },
                     "old_password": {
                         "type": "string",
                         "description": "old_password",
                         "example": "Test_12345"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "description": "new_password",
+                        "example": "Test_67890"
                     }
                 },
                 "required": [
@@ -786,15 +801,15 @@
             "Tokens": {
                 "type": "object",
                 "properties": {
-                    "access_token": {
-                        "type": "string",
-                        "description": "access_token",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
-                    },
                     "refresh_token": {
                         "type": "string",
                         "description": "refresh_token",
                         "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiYzI2MzBlZmQtMjU1Ni00NDdiLTk1OGItMzZlOTIxNjg3MjM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJhMjliMTI4ZC0zOWM3LTRjMTUtYmRhMi0wMjc4MzM5YjczMTMiLCJuYmYiOjE2NjMxMjQyMzIsImV4cCI6MTY2Mzk4ODIzMiwicGVybWlzc2lvbnMiOltdLCJpc19zdXBlciI6ZmFsc2V9.5Wmo7M7klrxO4_c47JI2xWAWSGljCS9cvn3D0VWUXmo"
+                    },
+                    "access_token": {
+                        "type": "string",
+                        "description": "access_token",
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
                     }
                 },
                 "required": [
@@ -846,15 +861,15 @@
                         "description": "code",
                         "example": 0
                     },
-                    "description": {
-                        "type": "string",
-                        "description": "description",
-                        "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
-                    },
                     "name": {
                         "type": "string",
                         "description": "name",
                         "example": "Default user"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "description",
+                        "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
                     }
                 },
                 "required": [

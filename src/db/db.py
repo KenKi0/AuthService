@@ -18,6 +18,7 @@ def init_db(app: Flask, config: str = settings.postgres.uri) -> None:
     :param config: settings
     """
     app.config['SQLALCHEMY_DATABASE_URI'] = config
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     app.app_context().push()
     migtate.init_app(app, db)

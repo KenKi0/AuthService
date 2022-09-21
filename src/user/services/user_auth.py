@@ -8,6 +8,7 @@ import user.payload_models as payload_models
 import user.repositories as repo
 import utils.exceptions as exc
 import utils.types as types
+from api.v1.utils import Pagination
 from core.config import settings
 from core.logger import get_logger
 
@@ -137,13 +138,14 @@ class UserService:
         self.tms_repo.set(tms_key, refresh_token, ex=settings.jwt.REFRESH_TOKEN_EXP)
         return access_token, refresh_token
 
-    def get_history(self, user: payload_models.UserID) -> list[layer_models.Session]:
+    def get_history(self, user: payload_models.UserID, paginate: Pagination) -> list[layer_models.Session]:
         """
         Отдает историю посещений пользователя на аккаунт
+        :param paginate: данные пагинации
         :param user: данные пользователя
         :return: список из историй
         """
-        return self.db_repo.get_history(user.user_id)
+        return self.db_repo.get_history(user.user_id, paginate)
 
     def logout(self, logout: payload_models.LogoutPayload) -> None:
         """
