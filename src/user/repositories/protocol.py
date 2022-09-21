@@ -6,6 +6,7 @@ from contextlib import contextmanager
 
 import user.layer_models as layer_models
 import user.payload_models as payload_models
+from api.v1.utils import Pagination
 
 
 @dataclasses.dataclass
@@ -67,7 +68,7 @@ class UserRepositoryProtocol(typing.Protocol):
     def get_user_permissions(self, user_id: uuid.UUID) -> list[layer_models.Permission]:
         ...
 
-    def get_history(self, user_id: uuid.UUID) -> list[layer_models.Session]:
+    def get_history(self, user_id: uuid.UUID, paginate: Pagination) -> list[layer_models.Session]:
         ...
 
     def get_user_roles(self, user_id: uuid.UUID) -> list[layer_models.Role]:

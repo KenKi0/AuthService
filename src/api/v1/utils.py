@@ -1,11 +1,20 @@
+import dataclasses
 from functools import wraps
 from http import HTTPStatus
 
 from flask import jsonify
 from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
 
+from core import settings
 
-def check_permission(permission: int):
+
+@dataclasses.dataclass
+class Pagination:
+    page: int = 1
+    size: int = 10
+
+
+def check_permission(permission: settings.permission):
     """
     Проверка наличия прав для доступа.
     :param permission: код конректного пермишана
@@ -23,7 +32,7 @@ def check_permission(permission: int):
             is_super = claims.get('is_super', False)
             permissions = claims.get('permissions')
 
-            if is_owner or is_super or (permission in permissions):
+            if is_owner or is_super or (permission.value in permissions):
                 return func(*args, **kwargs)
             else:
                 return jsonify(msg='Permission denied'), HTTPStatus.FORBIDDEN
