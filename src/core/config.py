@@ -1,4 +1,5 @@
 from datetime import timedelta
+from enum import Enum
 from logging import config as logging_config
 from pathlib import Path
 
@@ -85,6 +86,13 @@ class SwaggerSettings(BaseConfig):
     API_URL: str = '/static/swagger.json'
 
 
+class PermissionSettings(Enum):
+    User = 0
+    Subscriber = 1
+    Vip_subscriber = 2
+    Moderator = 3
+
+
 class ProjectSettings(BaseConfig):
     redis: RedisSettings = RedisSettings()
     postgres: PostgresSettings = PostgresSettings()
@@ -92,6 +100,7 @@ class ProjectSettings(BaseConfig):
     jwt: JWTSettings = JWTSettings()
     security: SecuritySettings = SecuritySettings()
     swagger: SwaggerSettings = SwaggerSettings()
+    permission = PermissionSettings
 
 
 settings = ProjectSettings()

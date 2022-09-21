@@ -3,6 +3,7 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
+from core.config import settings
 from role.payload_models import RoleCreate, RoleUpdate
 from role.services.role import RoleService
 from utils.exceptions import AttemptDeleteProtectedObjectError, NotFoundError, UniqueConstraintError
@@ -18,7 +19,7 @@ service = RoleService()
 
 @role_blueprint.route('/roles', methods=('GET',))
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def roles():
     """
     Получение всех ролей из БД.
@@ -44,7 +45,7 @@ def roles():
 
 @role_blueprint.route('/role', methods=('POST',))
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def role():
     """
     Добавление новой роли в базу.
@@ -89,7 +90,7 @@ def role():
     ),
 )
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def role_by_id(role_id):  # noqa: C901
     """
     Просмотр | Изменение | Удаление роли по id.
@@ -210,7 +211,7 @@ def role_by_id(role_id):  # noqa: C901
     ),
 )
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def role_permissions(role_id):
     """
     Добавление | Удаление пермишина у роли.

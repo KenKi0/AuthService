@@ -3,6 +3,7 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
+from core.config import settings
 from permission.payload_models import PermissionCreate, PermissionUpdate
 from permission.services.permission import PermissionService
 from utils.exceptions import AttemptDeleteProtectedObjectError, NotFoundError, UniqueConstraintError
@@ -17,7 +18,7 @@ service = PermissionService()
 
 @permissions_blueprint.route('/permissions', methods=('GET',))
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def permissions():
     """
     Получение всех уровней доступа из БД.
@@ -49,7 +50,7 @@ def permissions():
     ),
 )
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def permission_by_id(permission_id):  # noqa: C901
     """
     Просмотр | Изменение | Удаление уровня доступа по id.
@@ -164,7 +165,7 @@ def permission_by_id(permission_id):  # noqa: C901
 
 @permissions_blueprint.route('/permission', methods=('POST',))
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def permission():
     """
     Добавление нового уровня доступа в БД.
