@@ -1,12 +1,14 @@
 from contextlib import contextmanager
 
 from flask import Flask
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import Session
 
 from core.config import settings
 
 db = SQLAlchemy()
+migtate = Migrate()
 
 
 def init_db(app: Flask, config: str = settings.postgres.uri) -> None:
@@ -18,7 +20,7 @@ def init_db(app: Flask, config: str = settings.postgres.uri) -> None:
     app.config['SQLALCHEMY_DATABASE_URI'] = config
     db.init_app(app)
     app.app_context().push()
-    db.create_all()
+    migtate.init_app(app, db)
 
 
 @contextmanager
