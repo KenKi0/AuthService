@@ -65,7 +65,7 @@
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0421\u043c\u0435\u043d\u0430 \u043f\u0430\u0440\u043e\u043b\u044f",
@@ -109,7 +109,7 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "RefreshAuth": []
                     }
                 ],
                 "summary": "\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0442\u043e\u043a\u0435\u043d\u043e\u0432",
@@ -130,7 +130,7 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0412\u044b\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0438\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430",
@@ -160,7 +160,7 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u041f\u043e\u043b\u0443\u0447\u0438\u0442\u044c \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u0439",
@@ -188,38 +188,11 @@
                 ]
             }
         },
-        "/api/v1/roles": {
+        "/api/v1/user/roles/{user_id}": {
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0441\u043f\u0438\u0441\u043a\u0430 \u0432\u0441\u0435\u0445 \u0440\u043e\u043b\u0435\u0439 \u0438\u0437 \u0431\u0430\u0437\u044b",
-                "responses": {
-                    "200": {
-                        "description": "Ok"
-                    },
-                    "204": {
-                        "description": "Role list is empty"
-                    },
-                    "400": {
-                        "description": "Bad request"
-                    },
-                    "403": {
-                        "description": "Permission denied"
-                    }
-                },
-                "tags": [
-                    "Role"
-                ]
-            }
-        },
-        "/api/v1/roles/{user_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0441\u043f\u0438\u0441\u043a\u0430 \u0432\u0441\u0435\u0445 \u0440\u043e\u043b\u0435\u0439 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
@@ -240,6 +213,9 @@
                     },
                     "403": {
                         "description": "Permission denied"
+                    },
+                    "404": {
+                        "description": "User not found"
                     }
                 },
                 "tags": [
@@ -249,7 +225,7 @@
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0440\u043e\u043b\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044e",
@@ -288,7 +264,7 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0440\u043e\u043b\u0438 \u0443 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
@@ -325,11 +301,32 @@
                 ]
             }
         },
+        "/api/v1/roles": {
+            "get": {
+                "security": [
+                    {
+                        "AccessAuth": []
+                    }
+                ],
+                "summary": "\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0441\u043f\u0438\u0441\u043a\u0430 \u0432\u0441\u0435\u0445 \u0440\u043e\u043b\u0435\u0439 \u0438\u0437 \u0431\u0430\u0437\u044b",
+                "responses": {
+                    "200": {
+                        "description": "Ok"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
         "/api/v1/role": {
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043d\u043e\u0432\u043e\u0439 \u0440\u043e\u043b\u0438",
@@ -362,7 +359,7 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0440\u043e\u043b\u0438 \u043f\u043e id",
@@ -378,9 +375,6 @@
                     "200": {
                         "description": "Ok"
                     },
-                    "204": {
-                        "description": "Permissions list is empty"
-                    },
                     "403": {
                         "description": "Permission denied"
                     },
@@ -395,7 +389,7 @@
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0418\u0437\u043c\u0435\u043d\u0438\u0442\u044c \u0440\u043e\u043b\u044c \u043f\u043e id",
@@ -425,6 +419,9 @@
                     },
                     "404": {
                         "description": "Not found"
+                    },
+                    "409": {
+                        "description": "Role is already in use"
                     }
                 },
                 "tags": [
@@ -434,7 +431,7 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0440\u043e\u043b\u0438 \u043f\u043e id",
@@ -442,6 +439,86 @@
                     {
                         "name": "role_id",
                         "in": "path",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ok"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "409": {
+                        "description": "Protected Role"
+                    }
+                },
+                "tags": [
+                    "Role"
+                ]
+            }
+        },
+        "/api/v1/permissions/{role_id}": {
+            "post": {
+                "security": [
+                    {
+                        "AccessAuth": []
+                    }
+                ],
+                "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043a \u0440\u043e\u043b\u0438",
+                "parameters": [
+                    {
+                        "name": "role_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "name": "permission_id",
+                        "in": "query",
+                        "type": "string",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permission assigned to role"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "409": {
+                        "description": "Permission is already in use"
+                    }
+                },
+                "tags": [
+                    "Permission"
+                ]
+            },
+            "delete": {
+                "security": [
+                    {
+                        "AccessAuth": []
+                    }
+                ],
+                "summary": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0443 \u0440\u043e\u043b\u0438",
+                "parameters": [
+                    {
+                        "name": "role_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "name": "permission_id",
+                        "in": "query",
                         "type": "string",
                         "required": true
                     }
@@ -466,162 +543,13 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0441\u043f\u0438\u0441\u043a\u0430 \u0432\u0441\u0435\u0445 \u0443\u0440\u043e\u0432\u043d\u0435\u0439 \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0438\u0437 \u0431\u0430\u0437\u044b",
                 "responses": {
                     "200": {
                         "description": "Ok"
-                    },
-                    "204": {
-                        "description": "Permissions list is empty"
-                    },
-                    "400": {
-                        "description": "Bad request"
-                    },
-                    "403": {
-                        "description": "Permission denied"
-                    }
-                },
-                "tags": [
-                    "Permission"
-                ]
-            }
-        },
-        "/api/v1/permissions/{role_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u0438\u0435 \u0441\u043f\u0438\u0441\u043a\u0430 \u0432\u0441\u0435\u0445 \u0443\u0440\u043e\u0432\u043d\u0435\u0439 \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0440\u043e\u043b\u0438",
-                "parameters": [
-                    {
-                        "name": "role_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ok"
-                    },
-                    "204": {
-                        "description": "Permissions list is empty"
-                    },
-                    "403": {
-                        "description": "Permission denied"
-                    }
-                },
-                "tags": [
-                    "Permission"
-                ]
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043a \u0440\u043e\u043b\u0438",
-                "parameters": [
-                    {
-                        "name": "role_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true
-                    },
-                    {
-                        "name": "permission_id",
-                        "in": "query",
-                        "type": "string",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Permission assigned to role"
-                    },
-                    "204": {
-                        "description": "Permissions list is empty"
-                    },
-                    "403": {
-                        "description": "Permission denied"
-                    },
-                    "409": {
-                        "description": "Permission is already in use"
-                    }
-                },
-                "tags": [
-                    "Permission"
-                ]
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0443 \u0440\u043e\u043b\u0438",
-                "parameters": [
-                    {
-                        "name": "role_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": true
-                    },
-                    {
-                        "name": "permission_id",
-                        "in": "query",
-                        "type": "string",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Ok"
-                    },
-                    "204": {
-                        "description": "Permissions list is empty"
-                    },
-                    "403": {
-                        "description": "Permission denied"
-                    },
-                    "409": {
-                        "description": "Permission is already deleted"
-                    }
-                },
-                "tags": [
-                    "Permission"
-                ]
-            }
-        },
-        "/api/v1/permission": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043d\u043e\u0432\u043e\u0433\u043e \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/Permission"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "New permission was created"
-                    },
-                    "409": {
-                        "description": "Permission is already in use"
                     },
                     "403": {
                         "description": "Permission denied"
@@ -636,7 +564,7 @@
             "get": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043f\u043e id",
@@ -652,9 +580,6 @@
                     "200": {
                         "description": "Ok"
                     },
-                    "204": {
-                        "description": "Role list is empty"
-                    },
                     "403": {
                         "description": "Permission denied"
                     },
@@ -669,7 +594,7 @@
             "patch": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0418\u0437\u043c\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043f\u043e id",
@@ -699,6 +624,9 @@
                     },
                     "404": {
                         "description": "Not found"
+                    },
+                    "409": {
+                        "description": "Permission is already in use"
                     }
                 },
                 "tags": [
@@ -708,7 +636,7 @@
             "delete": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessAuth": []
                     }
                 ],
                 "summary": "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u043f\u043e id",
@@ -729,6 +657,42 @@
                     },
                     "404": {
                         "description": "Not found"
+                    },
+                    "409": {
+                        "description": "Protected Permission"
+                    }
+                },
+                "tags": [
+                    "Permission"
+                ]
+            }
+        },
+        "/api/v1/permission": {
+            "post": {
+                "security": [
+                    {
+                        "AccessAuth": []
+                    }
+                ],
+                "summary": "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043d\u043e\u0432\u043e\u0433\u043e \u0443\u0440\u043e\u0432\u043d\u044f \u0434\u043e\u0441\u0442\u0443\u043f\u0430",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Permission"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "New permission was created"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    },
+                    "409": {
+                        "description": "Permission is already in use"
                     }
                 },
                 "tags": [
@@ -759,20 +723,20 @@
             "Register": {
                 "type": "object",
                 "properties": {
-                    "password": {
+                    "email": {
                         "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
+                        "description": "email",
+                        "example": "test_2@test.com"
                     },
                     "username": {
                         "type": "string",
                         "description": "name",
                         "example": "TestUser"
                     },
-                    "email": {
+                    "password": {
                         "type": "string",
-                        "description": "email",
-                        "example": "test_2@test.com"
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -784,15 +748,15 @@
             "Login": {
                 "type": "object",
                 "properties": {
-                    "password": {
-                        "type": "string",
-                        "description": "password",
-                        "example": "Test_12345"
-                    },
                     "email": {
                         "type": "string",
                         "description": "email",
                         "example": "test_2@test.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "password",
+                        "example": "Test_12345"
                     }
                 },
                 "required": [
@@ -822,15 +786,15 @@
             "Tokens": {
                 "type": "object",
                 "properties": {
-                    "refresh_token": {
-                        "type": "string",
-                        "description": "refresh_token",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiYzI2MzBlZmQtMjU1Ni00NDdiLTk1OGItMzZlOTIxNjg3MjM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJhMjliMTI4ZC0zOWM3LTRjMTUtYmRhMi0wMjc4MzM5YjczMTMiLCJuYmYiOjE2NjMxMjQyMzIsImV4cCI6MTY2Mzk4ODIzMiwicGVybWlzc2lvbnMiOltdLCJpc19zdXBlciI6ZmFsc2V9.5Wmo7M7klrxO4_c47JI2xWAWSGljCS9cvn3D0VWUXmo"
-                    },
                     "access_token": {
                         "type": "string",
                         "description": "access_token",
                         "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
+                    },
+                    "refresh_token": {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiYzI2MzBlZmQtMjU1Ni00NDdiLTk1OGItMzZlOTIxNjg3MjM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJhMjliMTI4ZC0zOWM3LTRjMTUtYmRhMi0wMjc4MzM5YjczMTMiLCJuYmYiOjE2NjMxMjQyMzIsImV4cCI6MTY2Mzk4ODIzMiwicGVybWlzc2lvbnMiOltdLCJpc19zdXBlciI6ZmFsc2V9.5Wmo7M7klrxO4_c47JI2xWAWSGljCS9cvn3D0VWUXmo"
                     }
                 },
                 "required": [
@@ -877,23 +841,20 @@
             "Permission": {
                 "type": "object",
                 "properties": {
-
                     "code": {
                         "type": "integer",
                         "description": "code",
                         "example": 0
-
-                    },
-                    "name": {
-                        "type": "string",
-                        "description": "name",
-                        "example": "Default user"
                     },
                     "description": {
                         "type": "string",
                         "description": "description",
                         "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
-
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "name",
+                        "example": "Default user"
                     }
                 },
                 "required": [
@@ -904,11 +865,19 @@
             }
         },
         "securitySchemes": {
-            "BearerAuth": {
+            "AccessAuth": {
                 "type": "http",
                 "description": "Enter JWT Bearer token",
                 "scheme": "bearer",
-                "bearerFormat": "JWT"
+                "bearerFormat": "JWT",
+                "name": "access_token"
+            },
+            "RefreshAuth": {
+                "type": "http",
+                "description": "Enter JWT Bearer token",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "name": "refresh_token"
             }
         }
     }

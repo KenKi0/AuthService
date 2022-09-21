@@ -23,7 +23,7 @@ def check_permission(permission: int):
             is_super = claims.get('is_super', False)
             permissions = claims.get('permissions')
 
-            if is_owner or is_super or (permission in permissions):
+            if is_owner or is_super or (permission.value in permissions):
                 return func(*args, **kwargs)
             else:
                 return jsonify(msg='Permission denied'), HTTPStatus.FORBIDDEN

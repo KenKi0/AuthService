@@ -3,6 +3,7 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from core.config import settings
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
@@ -100,7 +101,7 @@ def login():
 
 @auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
 @jwt_required()
-@check_permission(permission=0)
+@check_permission(permission=settings.permission.User)
 def change_password(user_id):
     """
     Смена пароля.
@@ -222,7 +223,7 @@ def logout():
 
 
 @user_blueprint.route('/login-history/<uuid:user_id>', methods=('GET',))
-@check_permission(permission=0)
+@check_permission(permission=settings.permission.User)
 def login_history(user_id):
     """
     Получить историю посещений.
@@ -269,7 +270,7 @@ def login_history(user_id):
     ),
 )
 @jwt_required()
-@check_permission(permission=3)
+@check_permission(permission=settings.permission.Moderator)
 def user_roles(user_id):  # noqa: C901
     """
     Получение | Добавление | Удаление ролей пользователя.
