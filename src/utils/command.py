@@ -99,7 +99,7 @@ def init_cli(app: Flask):
                 'id': UUID('f2e9e8f7-48f1-4d58-a012-d984170b88d8'),  # admin
                 'username': 'admin_test',
                 'email': 'admin_test@test.com',
-                'password': '$2b$12$16kSsskBdY2GAkuYBS4UX.EDDim0KO8Dt3st.SPHr.gD2/LyD8nFy',
+                'password': '$2b$12$Xz1MPyZFPnYAaRZJCgQgQuuxCO1Sl5Y.eQOjHxNtVEsFIvCwmTsqO',
                 'is_super': True,
             },
             # moderator
@@ -185,6 +185,11 @@ def init_cli(app: Flask):
         db.session.add(user_role)
         # Admin
         role = Role.query.filter_by(name='User').first()
+        user = User.query.filter_by(username='admin_test').first()
+        user_role = RoleUser(user_id=user.id, role_id=role.id)
+        db.session.add(user_role)
+
+        role = Role.query.filter_by(name='Moderator_test').first()
         user = User.query.filter_by(username='admin_test').first()
         user_role = RoleUser(user_id=user.id, role_id=role.id)
         db.session.add(user_role)
