@@ -155,7 +155,7 @@ def test_role_by_id_moderator_delete_conflict(client, moderator_headers, get_rol
 # # /api/v1/permissions/<uuid:role_id> POST
 def test_role_permission_user_post(client, user_headers_access, get_role_id, get_prmission_id):
     role_id = get_role_id('Moderator_test')
-    permission_id = get_prmission_id('Test')
+    permission_id = get_prmission_id('Moderator_new')
     response = client.post(
         f'{test_settings.service_url}/api/v1/permissions/{role_id}',
         json={'permission_id': permission_id},
@@ -167,7 +167,7 @@ def test_role_permission_user_post(client, user_headers_access, get_role_id, get
 # -
 def test_role_permission_moderator_post(client, moderator_headers, get_role_id, get_prmission_id):
     role_id = get_role_id('Moderator_test')
-    permission_id = get_prmission_id('Test')
+    permission_id = get_prmission_id('Admin_new')
 
     response = client.post(
         f'{test_settings.service_url}/api/v1/permissions/{role_id}',
@@ -180,7 +180,7 @@ def test_role_permission_moderator_post(client, moderator_headers, get_role_id, 
 # /api/v1/permissions/<uuid:role_id> DELETE
 def test_role_permission_user_delete(client, user_headers_access, get_role_id, get_prmission_id):
     role_id = get_role_id('Moderator_test')
-    permission_id = get_prmission_id('Test')
+    permission_id = get_prmission_id('Default_user_test')
     response = client.delete(
         f'{test_settings.service_url}/api/v1/permissions/{role_id}',
         json={'permission_id': permission_id},
@@ -192,21 +192,10 @@ def test_role_permission_user_delete(client, user_headers_access, get_role_id, g
 #
 def test_role_permission_moderator_delete(client, moderator_headers, get_role_id, get_prmission_id):
     role_id = get_role_id('Moderator_test')
-    permission_id = get_prmission_id('Test')
+    permission_id = get_prmission_id('Moderator_test')
     response = client.delete(
         f'{test_settings.service_url}/api/v1/permissions/{role_id}',
-        json=json.dumps({'permission_id': permission_id}),
+        query_string={'permission_id': permission_id},
         headers=moderator_headers,
     )
     assert response.status_code == HTTPStatus.OK
-
-
-def test_role_permission_moderator_delete_conflict(client, moderator_headers, get_role_id, get_prmission_id):
-    role_id = get_role_id('Moderator_test')
-    permission_id = get_prmission_id('Default_user_test')
-    response = client.delete(
-        f'{test_settings.service_url}/api/v1/permissions/{role_id}',
-        json=json.dumps({'permission_id': permission_id}),
-        headers=moderator_headers,
-    )
-    assert response.status_code == HTTPStatus.CONFLICT

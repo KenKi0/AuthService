@@ -35,7 +35,7 @@ def test_permissions_admin_get(client, admin_headers):
         headers=admin_headers,
     )
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json['roles']) == 3
+    assert len(response.json['permissions']) == 3
 
 
 # /api/v1//permission POST
@@ -148,7 +148,7 @@ def test_permision_by_id_moderator_patch(  # noqa: F811
     moderator_headers,
     get_prmission_id,
 ):
-    prmission_id = get_prmission_id('Moderator_new')
+    prmission_id = get_prmission_id('Test')
     response = client.patch(
         f'{test_settings.service_url}/api/v1/permission/{prmission_id}',
         json={
@@ -161,14 +161,14 @@ def test_permision_by_id_moderator_patch(  # noqa: F811
     assert response.status_code == HTTPStatus.OK
 
 
-def test_permision_by_id_moderator_patch(client, moderator_headers, get_prmission_id):  # noqa: F811
-    prmission_id = get_prmission_id('Moderator_permission_new_new')
+def test_permision_by_id_moderator_patch_conflict(client, moderator_headers, get_prmission_id):  # noqa: F811
+    prmission_id = get_prmission_id('Moderator_new_new')
     response = client.patch(
         f'{test_settings.service_url}/api/v1/permission/{prmission_id}',
         json={
-            'name': 'Test',
+            'name': 'Default_user_test',
             'description': 'user',
-            'code': 2,
+            'code': 0,
         },
         headers=moderator_headers,
     )
@@ -181,7 +181,7 @@ def test_permision_by_id_moderator_delete(
     moderator_headers,
     get_prmission_id,
 ):
-    prmission_id = get_prmission_id('Moderator_permission_new_new')
+    prmission_id = get_prmission_id('Moderator_new_new')
     response = client.delete(
         f'{test_settings.service_url}/api/v1/permission/{prmission_id}',
         headers=moderator_headers,
@@ -189,12 +189,12 @@ def test_permision_by_id_moderator_delete(
     assert response.status_code == HTTPStatus.OK
 
 
-def test_permision_by_id_moderator_delete(  # noqa: F811
+def test_permision_by_id_moderator_delete_conflict(  # noqa: F811
     client,
     moderator_headers,
     get_prmission_id,
 ):
-    prmission_id = get_prmission_id('Default user')
+    prmission_id = get_prmission_id('Default_user_test')
     response = client.delete(
         f'{test_settings.service_url}/api/v1/permission/{prmission_id}',
         headers=moderator_headers,
