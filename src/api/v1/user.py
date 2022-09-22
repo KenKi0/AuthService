@@ -99,10 +99,10 @@ def login():
     return response, HTTPStatus.OK
 
 
-@auth_blueprint.route('/change-password/<uuid:user_id>', methods=('PATCH',))
+@auth_blueprint.route('/change-password', methods=('PATCH',))
 @jwt_required()
 @check_permission(permission=settings.permission.User)
-def change_password(user_id):
+def change_password():
     """
     Смена пароля.
     ---
@@ -133,14 +133,12 @@ def change_password(user_id):
     """
 
     _request = {
-        'user_id': user_id,
+        'user_id': get_jwt_identity(),
         'old_password': request.json.get('old_password'),
         'new_password': request.json.get('new_password'),
     }
     try:
         service.change_password(ChangePasswordPayload(**_request))
-    except NoAccessError:
-        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     except NotFoundError:
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
@@ -176,6 +174,8 @@ def refresh_token():
         access_token, refresh_token = service.refresh_tokens(RefreshTokensPayload(**_request))
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    except NotFoundError:
+        return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     response = jsonify(
         message='Refresh successful',
         tokens={
@@ -215,9 +215,8 @@ def logout():
     }
     try:
         service.logout(LogoutPayload(**_request))
-    except NoAccessError:
-
-        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    except NotFoundError:
+        return jsonify(message='Not user'), HTTPStatus.UNAUTHORIZED
 
     return jsonify(message='User logged out'), HTTPStatus.OK
 
@@ -251,12 +250,9 @@ def login_history(user_id):
     _request = {
         'user_id': user_id,
     }
-    try:
-        user_histories = service.get_history(UserID(**_request))
-    except NoAccessError:
-        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    user_histories = service.get_history(UserID(**_request))
     return (
-        jsonify(history=[SessionSchem().dumps(histori) for histori in user_histories]),
+        jsonify(history=[SessionSchem().dumps(history) for history in user_histories]),
         HTTPStatus.OK,
     )
 
@@ -381,6 +377,4 @@ def user_roles(user_id):  # noqa: C901
             service.remove_role(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
-        except UniqueConstraintError:
-            return jsonify(message='Role is already deleted'), HTTPStatus.CONFLICT
         return jsonify(message='Role was deleted sucessfully'), HTTPStatus.OK

@@ -97,7 +97,10 @@ class UserService:
             raise
         if not verify_password(passwords.old_password, user.password):
             raise exc.InvalidPassword
-        self.db_repo.update(passwords.user_id, payload_models.UserUpdatePayload(password=passwords.new_password))
+        self.db_repo.update(
+            passwords.user_id,
+            payload_models.UserUpdatePayload(password=hash_password(passwords.new_password)),
+        )
 
     def refresh_tokens(
         self,
@@ -109,7 +112,7 @@ class UserService:
         :param token: данные для обнволения токенов
         :return: кортеж из access и refresh токенов
         :raises NotFoundError: если указанный пользователь не был найден в базе
-        :raises InvalidPassword: если был указан не правильный текущий пароль
+        :raises NoAccessError: если укзанный рефреш токен не совпадает с активным
         """
         try:
             user = self.db_repo.get_by_id(token.user_id)
@@ -149,15 +152,22 @@ class UserService:
         """
         Завершает текущюю или все активные сессис аккаунта
         :param logout: данные пользователя
+        :raises NotFoundError: если не было найдено устройства в разрешенных устройствах пользователя
         """
         if logout.from_all:
             devices = self.db_repo.get_allowed_devices(logout.user_id)
+            if not devices:
+                raise exc.NotFoundError
         else:
-            devices = [
-                self.db_repo.get_allowed_device(
-                    payload_models.UserDevicePayload(user_id=logout.user_id, user_agent=logout.user_agent),
-                ),
-            ]
+            try:
+                devices = [
+                    self.db_repo.get_allowed_device(
+                        payload_models.UserDevicePayload(user_id=logout.user_id, user_agent=logout.user_agent),
+                    ),
+                ]
+            except exc.NotFoundError as ex:
+                logger.info('Ошибка при попытке ыйти из аккаунта: \n %s', str(ex))
+                raise
         tms_keys = [device.user_agent + str(logout.user_id) for device in devices]
         self.tms_repo.delete(*tms_keys)
 

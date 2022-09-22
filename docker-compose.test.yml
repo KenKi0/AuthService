@@ -10,7 +10,6 @@ services:
       POSTGRES_PASSWORD: $PG_PASSWORD
     volumes:
       - ./src/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - db_data:/var/lib/postgresql/data
     expose:
       - 5432
     env_file:
@@ -21,7 +20,7 @@ services:
     build:
       context: .
       args:
-        PROJECT_ENV: production
+        PROJECT_ENV: test
     env_file:
       - .env
     entrypoint: ["sh", "src/test.sh"]
@@ -36,9 +35,3 @@ services:
     expose:
       - 6379
     restart: always
-    volumes:
-      - cache:/data
-
-volumes:
-  db_data:
-  cache:

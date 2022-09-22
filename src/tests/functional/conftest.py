@@ -3,12 +3,14 @@ from http import HTTPStatus
 
 import pytest
 from flask import Flask
+from flask_jwt_extended import create_access_token, create_refresh_token
 
 from db.db import db
 from db.redis import redis
 from main import create_app
 from models.permissions import Permission
 from models.role import Role
+from models.user import User
 
 from .settings import test_settings
 
@@ -44,12 +46,11 @@ def login(client):
             f'{test_settings.service_url}/api/v1/auth/login',
             data=request_body,
             content_type='application/json',
-            headers={'User-Agent': 'Mozilla/5.0 ...'},
         )
         if response.status_code == HTTPStatus.OK:
             return response.json['tokens']
         else:
-            raise Exception('Bad request')
+            raise Exception(f'Bad request: {response.status_code}')
 
     return _inner
 
@@ -96,5 +97,35 @@ def get_prmission_id(client):
     def _inner(name):
         permission = Permission.query.filter_by(name=name).first()
         return str(permission.id)
+
+    return _inner
+
+
+@pytest.fixture
+def get_user_id(client):
+    def _inner(email):
+        user = User.query.filter_by(email=email).first()
+        return str(user.id)
+
+    return _inner
+
+
+@pytest.fixture
+def create_tokens(client):
+    def _inner(user_id: str, permissions: list[int]):
+        additional_claims = {
+            'permissions': permissions,
+            'is_super': False,
+        }
+        access_token = create_access_token(
+            identity=user_id,
+            additional_claims=additional_claims,
+            expires_delta=test_settings.jwt.ACCESS_TOKEN_EXP,
+        )
+        refresh_token = create_refresh_token(
+            identity=user_id,
+            expires_delta=test_settings.jwt.REFRESH_TOKEN_EXP,
+        )
+        return access_token, refresh_token
 
     return _inner
