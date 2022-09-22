@@ -128,7 +128,7 @@ def permission_by_id(permission_id):  # noqa: C901
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
         return (
-            jsonify(PermissionSchem().dumps(permission)),
+            jsonify(permission=PermissionSchem().dumps(permission)),
             HTTPStatus.OK,
         )
 

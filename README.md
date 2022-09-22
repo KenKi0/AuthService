@@ -21,6 +21,9 @@
 ### Запуск приложения в docker
 1. Создать файл конфигурации ```.env``` в корне проекта и заполнить его согласно ```example.env ```
 2. Запустить контейнер командой
-    ```$ docker-compose -f docker-compose.yml up -d --build```
+    ```$ docker-compose -f docker-compose.prod.yml up -d --build```
 
-
+### Запуск тестов
+1. Создать файл конфигурации ```.env``` в корне проекта и заполнить его согласно ```example.env ```
+2. Запустить контейнер командой
+    ```$ docker-compose -f docker-compose.test.yml up -d --build```
