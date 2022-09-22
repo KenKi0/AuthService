@@ -17,7 +17,7 @@ from utils.exceptions import EmailAlreadyExist, InvalidPassword, NoAccessError, 
 
 from .components.role_schemas import Role as RoleSchem
 from .components.user_schemas import Session as SessionSchem
-from .utils import check_permission
+from .utils import Pagination, check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 user_blueprint = Blueprint('user', __name__, url_prefix='/api/v1/user')
@@ -236,9 +236,19 @@ def login_history(user_id):
         in: path
         type: string
         required: true
+      - name: page
+        in: query
+        type: integer
+        required: False
+      - name: size
+        in: query
+        type: integer
+        required: False
      responses:
        '200':
          description: User logged out
+       '204':
+         description: No content
        '400':
          description: Not user
        '403':
@@ -250,7 +260,14 @@ def login_history(user_id):
     _request = {
         'user_id': user_id,
     }
-    user_histories = service.get_history(UserID(**_request))
+    args = request.args
+    paginate = Pagination(page=args.get('page', type=int), size=args.get('size', type=int))
+    try:
+        user_histories = service.get_history(UserID(**_request), paginate)
+    except NoAccessError:
+        return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
+    if not user_histories:
+        return '', HTTPStatus.NO_CONTENT
     return (
         jsonify(history=[SessionSchem().dumps(history) for history in user_histories]),
         HTTPStatus.OK,

@@ -7,6 +7,7 @@ import user.layer_models as layer_models
 import user.payload_models as payload_models
 import user.repositories.protocol as protocol
 import utils.exceptions as exc
+from api.v1.utils import Pagination
 from db import session_scope
 from models import AllowedDevice, Permission, Role, RolePermission, RoleUser, Session, User
 
@@ -94,10 +95,14 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
         ).all()
         return [layer_models.UserDevice.from_orm(device) for device in devices]
 
-    def get_history(self, user_id: uuid.UUID) -> list[layer_models.Session]:
-        user_histories = Session.query.filter(
-            Session.user_id == user_id,
-        ).all()
+    def get_history(self, user_id: uuid.UUID, paginate: Pagination) -> list[layer_models.Session]:
+        user_histories = (
+            Session.query.filter(
+                Session.user_id == user_id,
+            )
+            .paginate(paginate.page, paginate.size, False)
+            .items
+        )
         return [layer_models.Session.from_orm(user_history) for user_history in user_histories]
 
     def add_new_session(self, session: payload_models.SessionPayload) -> layer_models.Session:

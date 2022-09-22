@@ -28,8 +28,8 @@ services:
     depends_on:
       - db
       - redis
-    ports:
-      - "5000:5000"
+    expose:
+      - 5000
     restart: always
 
   redis:
