@@ -87,6 +87,18 @@ class UserRepositoryProtocol(typing.Protocol):
         """
         ...
 
+    def get_social_account(self, social_id: str, social_name: str) -> layer_models.SocialAccount:
+        """
+        :raises NotFoundError: если модели SocialAccount с указанными social_id и social_name несуществует
+        """
+        ...
+
+    def create_social_account(self, social_account: payload_models.SocialAccountPayload) -> layer_models.SocialAccount:
+        """
+        :raises UniqueConstraintError: если указанная одель с указанными данными уже существует
+        """
+        ...
+
 
 class TMStorageTransaction(typing.Protocol):
     def set(self, key: str | bytes, value: bytes, ex: int | datetime.timedelta | None = None) -> None:

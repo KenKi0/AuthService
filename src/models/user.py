@@ -28,3 +28,15 @@ class UserInfo(BaseModel):
 
     def __repr__(self) -> str:
         return f'Login: {self.id} {self.date}'
+
+
+class SocialAccount(BaseModel):
+    __tablename__ = 'social_account'
+    __table_args__ = (db.UniqueConstraint('social_id', 'social_name', name='social_pk'), {'schema': 'auth'})
+
+    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'), nullable=False)
+    social_id = db.Column(db.Text, nullable=False)
+    social_name = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f'<SocialAccount {self.social_name}:{self.user_id}>'

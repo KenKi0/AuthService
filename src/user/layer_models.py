@@ -15,7 +15,13 @@ class User(DefaultModel):
     username: str
     email: str
     password: str
-    is_super: bool
+    is_super: bool = False
+
+
+class UserOAuth(BaseModel):
+    username: str
+    email: str
+    social_id: str
 
 
 class Session(DefaultModel):
@@ -38,3 +44,9 @@ class Permission(DefaultModel):
 class Role(DefaultModel):
     name: str
     description: str
+
+
+class SocialAccount(DefaultModel):
+    user_id: uuid.UUID
+    social_name: str
+    social_id: str

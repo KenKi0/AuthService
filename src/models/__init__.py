@@ -1,7 +1,7 @@
 from .permissions import Permission, RolePermission
 from .role import Role, RoleUser
 from .session import AllowedDevice, Session
-from .user import User, UserInfo
+from .user import SocialAccount, User, UserInfo
 
 __all__ = [
     'Permission',
@@ -12,4 +12,5 @@ __all__ = [
     'AllowedDevice',
     'User',
     'UserInfo',
+    'SocialAccount',
 ]

@@ -33,6 +33,38 @@
                 ]
             }
         },
+        "/api/v1/auth/register/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/register-callback/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    },
+                    "409": {
+                        "description": "Email is already in use or social account is already linked to another user"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
@@ -54,6 +86,9 @@
                     },
                     "401": {
                         "description": "User is not exist"
+                    },
+                    "403": {
+                        "description": "Permission denied"
                     }
                 },
                 "tags": [
@@ -61,7 +96,33 @@
                 ]
             }
         },
-        "/api/v1/auth/change-password/{user_id}": {
+        "/api/v1/auth/login/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/login-callback/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/change-password": {
             "patch": {
                 "security": [
                     {
@@ -189,7 +250,7 @@
                         "description": "User logged out"
                     },
                     "204": {
-                        "description": "User logged out"
+                        "description": "No content"
                     },
                     "400": {
                         "description": "Not user"
@@ -741,24 +802,22 @@
                     "email": {
                         "type": "string",
                         "description": "email",
+                        "required": true,
                         "example": "test_2@test.com"
-                    },
-                    "username": {
-                        "type": "string",
-                        "description": "name",
-                        "example": "TestUser"
                     },
                     "password": {
                         "type": "string",
                         "description": "password",
+                        "required": true,
                         "example": "Test_12345"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "name",
+                        "required": true,
+                        "example": "TestUser"
                     }
-                },
-                "required": [
-                    "email",
-                    "password",
-                    "username"
-                ]
+                }
             },
             "Login": {
                 "type": "object",
@@ -766,56 +825,50 @@
                     "email": {
                         "type": "string",
                         "description": "email",
+                        "required": true,
                         "example": "test_2@test.com"
                     },
                     "password": {
                         "type": "string",
                         "description": "password",
+                        "required": true,
                         "example": "Test_12345"
                     }
-                },
-                "required": [
-                    "email",
-                    "password"
-                ]
+                }
             },
             "ChangePassword": {
                 "type": "object",
                 "properties": {
-                    "old_password": {
-                        "type": "string",
-                        "description": "old_password",
-                        "example": "Test_12345"
-                    },
                     "new_password": {
                         "type": "string",
                         "description": "new_password",
+                        "required": true,
                         "example": "Test_67890"
+                    },
+                    "old_password": {
+                        "type": "string",
+                        "description": "old_password",
+                        "required": true,
+                        "example": "Test_12345"
                     }
-                },
-                "required": [
-                    "new_password",
-                    "old_password"
-                ]
+                }
             },
             "Tokens": {
                 "type": "object",
                 "properties": {
-                    "refresh_token": {
-                        "type": "string",
-                        "description": "refresh_token",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiYzI2MzBlZmQtMjU1Ni00NDdiLTk1OGItMzZlOTIxNjg3MjM1IiwidHlwZSI6InJlZnJlc2giLCJzdWIiOiJhMjliMTI4ZC0zOWM3LTRjMTUtYmRhMi0wMjc4MzM5YjczMTMiLCJuYmYiOjE2NjMxMjQyMzIsImV4cCI6MTY2Mzk4ODIzMiwicGVybWlzc2lvbnMiOltdLCJpc19zdXBlciI6ZmFsc2V9.5Wmo7M7klrxO4_c47JI2xWAWSGljCS9cvn3D0VWUXmo"
-                    },
                     "access_token": {
                         "type": "string",
                         "description": "access_token",
-                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyNDIzMiwianRpIjoiM2UxOWQ2NmEtYTU4ZS00OGYzLWIyMTMtOTViYmZjYjgxOGY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEyOWIxMjhkLTM5YzctNGMxNS1iZGEyLTAyNzgzMzliNzMxMyIsIm5iZiI6MTY2MzEyNDIzMiwiZXhwIjoxNjYzMTI1NDMyLCJwZXJtaXNzaW9ucyI6W10sImlzX3N1cGVyIjpmYWxzZX0.Y0VDqXj8MtD2XlVJKG8nBS_HjQoJHL9oPcbjBvmZ2_k"
+                        "required": true,
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2MzEyN....."
+                    },
+                    "refresh_token": {
+                        "type": "string",
+                        "description": "refresh_token",
+                        "required": true,
+                        "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY2Mz......"
                     }
-                },
-                "required": [
-                    "access_token",
-                    "refresh_token"
-                ]
+                }
             },
             "RefreshToken": {
                 "type": "object",
@@ -837,46 +890,42 @@
             "Role": {
                 "type": "object",
                 "properties": {
-                    "description": {
-                        "type": "string",
-                        "description": "description",
-                        "example": "Test"
-                    },
                     "name": {
                         "type": "string",
                         "description": "name",
+                        "required": true,
                         "example": "test_role"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "description",
+                        "required": true,
+                        "example": "Test"
                     }
-                },
-                "required": [
-                    "description",
-                    "name"
-                ]
+                }
             },
             "Permission": {
                 "type": "object",
                 "properties": {
-                    "code": {
-                        "type": "integer",
-                        "description": "code",
-                        "example": 0
-                    },
                     "name": {
                         "type": "string",
                         "description": "name",
+                        "required": true,
                         "example": "Default user"
+                    },
+                    "code": {
+                        "type": "integer",
+                        "description": "code",
+                        "required": true,
+                        "example": 0
                     },
                     "description": {
                         "type": "string",
                         "description": "description",
+                        "required": true,
                         "example": "\u041c\u043e\u0436\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u0430\u0442\u0440\u0438\u0432\u0430\u0442\u044c \u0441\u0432\u043e\u0439 \u043a\u043e\u043d\u0442\u0435\u043d\u0442"
                     }
-                },
-                "required": [
-                    "code",
-                    "description",
-                    "name"
-                ]
+                }
             }
         },
         "securitySchemes": {

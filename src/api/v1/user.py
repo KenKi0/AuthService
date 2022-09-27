@@ -3,26 +3,27 @@ from http import HTTPStatus
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from api.v1.components.role_schemas import Role as RoleSchem
+from api.v1.components.user_schemas import Session as SessionSchem
+from api.v1.utils import Pagination, check_permission
 from core.config import settings
 from user.payload_models import (
     ChangePasswordPayload,
     LogoutPayload,
+    OAuthUser,
     RefreshTokensPayload,
     UserCreatePayload,
     UserID,
     UserLoginPayload,
 )
-from user.services.user_auth import UserService
+from user.services import OAuthService, UserAuthService, UserService
 from utils.exceptions import EmailAlreadyExist, InvalidPassword, NoAccessError, NotFoundError, UniqueConstraintError
-
-from .components.role_schemas import Role as RoleSchem
-from .components.user_schemas import Session as SessionSchem
-from .utils import Pagination, check_permission
 
 auth_blueprint = Blueprint('auth', __name__, url_prefix='/api/v1/auth')
 user_blueprint = Blueprint('user', __name__, url_prefix='/api/v1/user')
 
-service = UserService()
+auth_service = UserAuthService()
+user_service = UserService()
 
 
 @auth_blueprint.route('/register', methods=('POST',))
@@ -50,9 +51,60 @@ def register():
         'password': request.json.get('password'),
     }
     try:
-        service.register(UserCreatePayload(**_request))
+        auth_service.register(UserCreatePayload(**_request))
     except EmailAlreadyExist:
         return jsonify(message='Email is already in use'), HTTPStatus.CONFLICT
+    return jsonify(message='New user was registered'), HTTPStatus.OK
+
+
+@auth_blueprint.route('/register/<provider>', methods=('POST',))
+def oauth_register(provider):
+    """
+    Вход пользователя в аккаунт.
+    ---
+    post:
+     summary: Вход пользователя в аккаунт
+     responses:
+       '200':
+         description: Login successful
+     tags:
+       - Auth
+    """
+    oauth = OAuthService.get_provider(provider)
+    return oauth.authorize('oauth_register_callback')
+
+
+@auth_blueprint.route('/register-callback/<provider>', methods=('GET',))
+def oauth_register_callback(provider):
+    """
+    Вход пользователя в аккаунт.
+    ---
+    post:
+     summary: Вход пользователя в аккаунт
+     responses:
+       '200':
+         description: Login successful
+       '403':
+         description: Permission denied
+       '409':
+         description: Email is already in use or social account is already linked to another user
+     tags:
+       - Auth
+    """
+    code = request.args.get('code', default=None)
+    oauth = OAuthService.get_provider(provider)
+    try:
+        user_social_data = oauth.callback(code, 'oauth_register_callback')
+    except NoAccessError:
+        return jsonify(message='Authentication failed.'), HTTPStatus.FORBIDDEN
+    try:
+        user_data = OAuthUser(user_agent=request.headers.get('User-Agent'), **user_social_data.dict())
+        oauth.register(user_data)
+    except EmailAlreadyExist:
+        return jsonify(message='Email is already in use'), HTTPStatus.CONFLICT
+    except UniqueConstraintError:
+        return jsonify(message='Social account is already linked'), HTTPStatus.CONFLICT
+
     return jsonify(message='New user was registered'), HTTPStatus.OK
 
 
@@ -74,6 +126,8 @@ def login():
          description: Wrong password
        '401':
          description: User is not exist
+       '403':
+         description: Permission denied
      tags:
        - Auth
     """
@@ -83,12 +137,67 @@ def login():
         'user_agent': request.headers.get('User-Agent'),
     }
     try:
-        access_token, refresh_token = service.login(UserLoginPayload(**_request))
+        access_token, refresh_token = auth_service.login(UserLoginPayload(**_request))
     except NotFoundError:
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
         return jsonify(message='Wrong password'), HTTPStatus.BAD_REQUEST
 
+    response = jsonify(
+        message='Login successful',
+        tokens={
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        },
+    )
+    return response, HTTPStatus.OK
+
+
+@auth_blueprint.route('/login/<provider>', methods=('POST',))
+def oauth_login(provider):
+    """
+    Вход пользователя в аккаунт.
+    ---
+    post:
+     summary: Вход пользователя в аккаунт
+     responses:
+       '200':
+         description: Login successful
+     tags:
+       - Auth
+    """
+    oauth = OAuthService.get_provider(provider)
+    return oauth.authorize('oauth_login_callback')
+
+
+@auth_blueprint.route('/login-callback/<provider>', methods=('GET',))
+def oauth_login_callback(provider):
+    """
+    Вход пользователя в аккаунт.
+    ---
+    post:
+     summary: Вход пользователя в аккаунт
+     responses:
+       '200':
+         description: Login successful
+       '403':
+         description: Authentication failed
+       '404':
+         description: User didnt exist or social account didnt linked to user
+     tags:
+       - Auth
+    """
+    code = request.args.get('code', default=None)
+    oauth = OAuthService.get_provider(provider)
+    try:
+        user_social_data = oauth.callback(code, 'oauth_login_callback')
+    except NoAccessError:
+        return jsonify(message='Authentication failed.'), HTTPStatus.FORBIDDEN
+    try:
+        user_data = OAuthUser(user_agent=request.headers.get('User-Agent'), **user_social_data.dict())
+        access_token, refresh_token = oauth.login(user_data)
+    except NotFoundError:
+        return jsonify(message='User didnt exist or social account didnt linked to user'), HTTPStatus.NOT_FOUND
     response = jsonify(
         message='Login successful',
         tokens={
@@ -138,7 +247,7 @@ def change_password():
         'new_password': request.json.get('new_password'),
     }
     try:
-        service.change_password(ChangePasswordPayload(**_request))
+        user_service.change_password(ChangePasswordPayload(**_request))
     except NotFoundError:
         return jsonify(message='User is not exist'), HTTPStatus.UNAUTHORIZED
     except InvalidPassword:
@@ -148,7 +257,7 @@ def change_password():
 
 @auth_blueprint.route('/refresh-token', methods=('POST',))
 @jwt_required(refresh=True)
-def refresh_token():
+def refresh_tokens():
     """
     Обновление токенов.
     ---
@@ -171,7 +280,7 @@ def refresh_token():
         'refresh': request.headers.get('Authorization')[7:],
     }
     try:
-        access_token, refresh_token = service.refresh_tokens(RefreshTokensPayload(**_request))
+        access_token, refresh_token = auth_service.refresh_tokens(RefreshTokensPayload(**_request))
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     except NotFoundError:
@@ -214,7 +323,7 @@ def logout():
         'from_all': request.json.get('from_all'),
     }
     try:
-        service.logout(LogoutPayload(**_request))
+        auth_service.logout(LogoutPayload(**_request))
     except NotFoundError:
         return jsonify(message='Not user'), HTTPStatus.UNAUTHORIZED
 
@@ -263,7 +372,7 @@ def login_history(user_id):
     args = request.args
     paginate = Pagination(page=args.get('page', type=int), size=args.get('size', type=int))
     try:
-        user_histories = service.get_history(UserID(**_request), paginate)
+        user_histories = user_service.get_history(UserID(**_request), paginate)
     except NoAccessError:
         return jsonify(message='Not user'), HTTPStatus.BAD_REQUEST
     if not user_histories:
@@ -362,7 +471,7 @@ def user_roles(user_id):  # noqa: C901
             'user_id': user_id,
         }
         try:
-            roles = service.get_roles(**_request)
+            roles = user_service.get_roles(**_request)
         except NotFoundError:
             return jsonify(message='User not found'), HTTPStatus.NOT_FOUND
         if not roles:
@@ -378,7 +487,7 @@ def user_roles(user_id):  # noqa: C901
             'role_id': request.args.get('role_id'),
         }
         try:
-            service.add_role(**_request)
+            user_service.add_role(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
         except UniqueConstraintError:
@@ -391,7 +500,7 @@ def user_roles(user_id):  # noqa: C901
             'role_id': request.args.get('role_id'),
         }
         try:
-            service.remove_role(**_request)
+            user_service.remove_role(**_request)
         except NotFoundError:
             return jsonify(message='Not found'), HTTPStatus.NOT_FOUND
         return jsonify(message='Role was deleted sucessfully'), HTTPStatus.OK

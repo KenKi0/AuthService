@@ -46,3 +46,15 @@ class UserDevicePayload(UserID):
 
 class SessionPayload(UserID):
     device_id: uuid.UUID
+
+
+class OAuthUser(BaseModel):
+    user_agent: str
+    social_id: str
+    username: str
+    email: str
+
+
+class SocialAccountPayload(UserID):
+    social_id: str
+    social_name: str
