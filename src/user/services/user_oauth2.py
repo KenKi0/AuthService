@@ -23,16 +23,38 @@ tms_repo = repo.get_user_tms_repo()
 
 
 class OAuthSubclassesProtocol(typing.Protocol):
-    def authorize(self, redirect_url: str) -> Response:
+    def authorize(self, handle_name: str) -> Response:
+        """
+        Редирекнуть на сайт провайдера для авторизации.
+
+        :param handle_name: название ручки для обработки callback
+        """
         ...
 
-    def callback(self, code: str, handle_name: str) -> layer_models.UserOAuth:
+    def callback(self, code: str) -> layer_models.UserOAuth:
+        """
+        Обменять code а token и получить данные пользователя.
+
+        :param code: code полученный от провайдера после авторазации пользователя
+        :raises NoAccessError: если не указан code
+        """
         ...
 
     def register(self, user: payload_models.OAuthUser) -> None:
+        """
+        Зарегестрировать нового пользователя.
+
+        :raises EmailAlreadyExist: указанный email уже сущетсвует
+        :raises UniqueConstraintError: если указанная социальная сеть уже привязана к другому пользователю
+        """
         ...
 
     def login(self, user_payload: payload_models.OAuthUser) -> tuple[types.AccessToken, types.RefreshToken]:
+        """
+        Войти в аккаунт с помощью соц сети.
+
+        :raises NotFoundError: если не получилось идентефицировать пользователя
+        """
         ...
 
 
@@ -131,7 +153,7 @@ class OAuthService:
         return ''.join(secrets_choice(alphabet) for _ in range(16))
 
 
-class YandexOAuth(OAuthService, OAuthSubclassesProtocol):
+class YandexOAuth(OAuthSubclassesProtocol, OAuthService):
     def __init__(self):
         super(YandexOAuth, self).__init__('yandex')
         self.service = OAuth2Service(
@@ -152,7 +174,7 @@ class YandexOAuth(OAuthService, OAuthSubclassesProtocol):
             ),
         )
 
-    def callback(self, code: str, handle_name: str) -> layer_models.UserOAuth:
+    def callback(self, code: str) -> layer_models.UserOAuth:
         def decode_json(payload):
             return json.loads(payload.decode('utf-8'))
 

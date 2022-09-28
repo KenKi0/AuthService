@@ -94,7 +94,7 @@ def oauth_register_callback(provider):
     code = request.args.get('code', default=None)
     oauth = OAuthService.get_provider(provider)
     try:
-        user_social_data = oauth.callback(code, 'oauth_register_callback')
+        user_social_data = oauth.callback(code)
     except NoAccessError:
         return jsonify(message='Authentication failed.'), HTTPStatus.FORBIDDEN
     try:
@@ -190,7 +190,7 @@ def oauth_login_callback(provider):
     code = request.args.get('code', default=None)
     oauth = OAuthService.get_provider(provider)
     try:
-        user_social_data = oauth.callback(code, 'oauth_login_callback')
+        user_social_data = oauth.callback(code)
     except NoAccessError:
         return jsonify(message='Authentication failed.'), HTTPStatus.FORBIDDEN
     try:

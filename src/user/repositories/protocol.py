@@ -57,6 +57,9 @@ class UserRepositoryProtocol(typing.Protocol):
         ...
 
     def get_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
+        """
+        :raises NotFoundError: если не была найдена указанное устройство
+        """
         ...
 
     def get_allowed_devices(self, user: uuid.UUID) -> list[layer_models.UserDevice]:
