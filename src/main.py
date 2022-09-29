@@ -4,7 +4,7 @@ from pathlib import Path
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
-from flask import Flask, send_from_directory
+from flask import Flask, request, send_from_directory
 from flask_jwt_extended import JWTManager
 from flask_security import Security
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -18,6 +18,7 @@ from api.v1.user import auth_blueprint, user_blueprint
 from core.config import settings
 from db.db import init_db
 from utils.command import init_cli
+from utils.tracing import configure_tracer
 
 jwt = JWTManager()
 
@@ -98,9 +99,16 @@ def init_spec(app: Flask) -> None:
         return send_from_directory('static', path)
 
 
+def is_have_request_id():
+    request_id = request.headers.get('X-Request-Id')
+    if not request_id:
+        raise RuntimeError('request id is required')
+
+
 def create_app():
 
     app = Flask(__name__)
+    app.before_request(is_have_request_id)
 
     init_blueprint(app)
     init_db(app)
@@ -108,6 +116,7 @@ def create_app():
     init_security(app)
     init_spec(app)
     init_cli(app)
+    configure_tracer(app)
 
     return app
 
