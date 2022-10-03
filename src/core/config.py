@@ -101,6 +101,7 @@ class ProjectSettings(BaseConfig):
     security: SecuritySettings = SecuritySettings()
     swagger: SwaggerSettings = SwaggerSettings()
     permission = PermissionSettings
+    REQUEST_LIMIT_PER_MINUTE: int = 20
 
 
 settings = ProjectSettings()
