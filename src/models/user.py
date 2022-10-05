@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask_security import UserMixin
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 
 from db import db
@@ -18,8 +19,35 @@ class User(BaseModel, UserMixin):
         return f'User: {self.username} {self.id}'
 
 
+def create_user_region_partition(target, connection, **kw) -> None:
+    """ creating partition by user_sign_in """
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_info_cis" PARTITION OF "user_info"
+        FOR VALUES IN ('Russia', 'Ukraine', 'Belarus', 'Kazakhstan')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_info_eu" PARTITION OF "user_info"
+        FOR VALUES IN ('UK', 'France', 'Germany', 'Netherlands')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_info_na" PARTITION OF "user_info"
+        FOR VALUES IN ('USA', 'Canada')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_info_as" PARTITION OF "user_info"
+        FOR VALUES IN ('China', 'Japan', 'South Korea')"""
+    )
+
+
 class UserInfo(BaseModel):
     __tablename__ = 'user_info'
+    __table_args__ = (
+        UniqueConstraint('id', 'country'),
+        {
+            'postgresql_partition_by': 'LIST (country)',
+            'listeners': [('after_create', create_user_region_partition)],
+        }
+    )
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('auth.users.id'), nullable=False)
     full_name = db.Column(db.String, nullable=False)
     country = db.Column(db.String, nullable=False)

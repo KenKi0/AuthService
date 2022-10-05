@@ -110,6 +110,7 @@ class ProjectSettings(BaseConfig):
     swagger: SwaggerSettings = SwaggerSettings()
     jaeger: JaegerSettings = JaegerSettings()
     permission = PermissionSettings
+    REQUEST_LIMIT_PER_MINUTE: int = 20
 
 
 settings = ProjectSettings()
