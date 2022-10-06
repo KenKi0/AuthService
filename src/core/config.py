@@ -118,6 +118,7 @@ class ProjectSettings(BaseConfig):
     permission: PermissionSettings = PermissionSettings
     oauth: OAuthSettings = OAuthSettings()
     jaeger: JaegerSettings = JaegerSettings()
+    enable_tracer: bool = True
     REQUEST_LIMIT_PER_MINUTE: int = 20
 
 

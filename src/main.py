@@ -19,8 +19,8 @@ from core.config import settings
 from db.db import init_db
 from db.redis import redis
 from utils.command import init_cli
-from utils.tracing import configure_tracer
 from utils.middlewares import RateLimitMiddleware
+from utils.tracing import configure_tracer
 
 jwt = JWTManager()
 
@@ -111,7 +111,8 @@ def create_app():
 
     app = Flask(__name__)
     app.before_request(is_have_request_id)
-    app.wsgi_app = RateLimitMiddleware(app.wsgi_app, app, redis)
+    if settings.enable_tracer:
+        app.wsgi_app = RateLimitMiddleware(app.wsgi_app, app, redis)
 
     init_blueprint(app)
     init_db(app)
