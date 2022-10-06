@@ -66,10 +66,14 @@ def oauth_register(provider):
      summary: Вход пользователя в аккаунт
      responses:
        '200':
-         description: Login successful
+         description: Register successful
+       '404':
+         description: Unsupportable provider
      tags:
        - Auth
     """
+    if not settings.oauth.providers.has_value(provider):
+        return jsonify(message='Unsupportable provider.'), HTTPStatus.NOT_FOUND
     oauth = OAuthService.get_provider(provider)
     return oauth.authorize('oauth_register_callback')
 
@@ -163,9 +167,13 @@ def oauth_login(provider):
      responses:
        '200':
          description: Login successful
+       '404':
+         description: Unsupportable provider
      tags:
        - Auth
     """
+    if not settings.oauth.providers.has_value(provider):
+        return jsonify(message='Unsupportable provider.'), HTTPStatus.NOT_FOUND
     oauth = OAuthService.get_provider(provider)
     return oauth.authorize('oauth_login_callback')
 
