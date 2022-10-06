@@ -67,6 +67,14 @@ class SecuritySettings(BaseConfig):
     SECURITY_PASSWORD_HASH: str = 'bcrypt'
 
 
+class JaegerSettings(BaseConfig):
+    AGENT_HOST: str = 'localhost'
+    AGENT_PORT: int = 6831
+
+    class Config:
+        env_prefix = 'JAEGER_'
+
+
 class SwaggerSettings(BaseConfig):
     SPEC_TAGS: list = [
         {
@@ -109,6 +117,8 @@ class ProjectSettings(BaseConfig):
     swagger: SwaggerSettings = SwaggerSettings()
     permission: PermissionSettings = PermissionSettings
     oauth: OAuthSettings = OAuthSettings()
+    jaeger: JaegerSettings = JaegerSettings()
+    REQUEST_LIMIT_PER_MINUTE: int = 20
 
 
 settings = ProjectSettings()
