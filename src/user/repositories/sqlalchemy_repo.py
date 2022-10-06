@@ -9,7 +9,7 @@ import user.repositories.protocol as protocol
 import utils.exceptions as exc
 from api.v1.utils import Pagination
 from db import session_scope
-from models import AllowedDevice, Permission, Role, RolePermission, RoleUser, Session, User
+from models import AllowedDevice, Permission, Role, RolePermission, RoleUser, Session, SocialAccount, User
 
 DEFAULT_USER_ROLE = 'User'
 
@@ -139,3 +139,23 @@ class UserSqlalchemyRepository(protocol.UserRepositoryProtocol):
             raise exc.NotFoundError
         with session_scope():
             role_user.update({'is_deleted': True})
+
+    def get_social_account(self, social_id: str, social_name: str) -> layer_models.SocialAccount:
+        social_account = SocialAccount.query.filter(
+            SocialAccount.social_id == social_id,
+            SocialAccount.social_name == social_name,
+        ).first()
+        if social_account is None:
+            raise exc.NotFoundError
+
+        return layer_models.SocialAccount.from_orm(social_account)
+
+    def create_social_account(self, social_account: payload_models.SocialAccountPayload) -> layer_models.SocialAccount:
+        new_social_account = SocialAccount(**social_account.dict())
+        try:
+            with session_scope() as session:
+                session.add(new_social_account)
+                session.flush()
+                return layer_models.SocialAccount.from_orm(new_social_account)
+        except sqlalch_exc.IntegrityError as ex:
+            raise exc.UniqueConstraintError from ex

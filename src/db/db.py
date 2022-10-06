@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from core.config import settings
 
 db = SQLAlchemy()
-migtate = Migrate()
+migrate = Migrate()
 
 
 def init_db(app: Flask, config: str = settings.postgres.uri) -> None:
@@ -21,7 +21,7 @@ def init_db(app: Flask, config: str = settings.postgres.uri) -> None:
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     app.app_context().push()
-    migtate.init_app(app, db)
+    migrate.init_app(app, db)
 
 
 @contextmanager

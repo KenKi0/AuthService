@@ -57,6 +57,9 @@ class UserRepositoryProtocol(typing.Protocol):
         ...
 
     def get_allowed_device(self, device: payload_models.UserDevicePayload) -> layer_models.UserDevice:
+        """
+        :raises NotFoundError: если не была найдена указанное устройство
+        """
         ...
 
     def get_allowed_devices(self, user: uuid.UUID) -> list[layer_models.UserDevice]:
@@ -84,6 +87,18 @@ class UserRepositoryProtocol(typing.Protocol):
     def delete_role_from_user(self, user_id: uuid.UUID, role_id: uuid.UUID) -> None:
         """
         :raises NotFoundError: если связи RoleUser с указанными id user и role несуществует
+        """
+        ...
+
+    def get_social_account(self, social_id: str, social_name: str) -> layer_models.SocialAccount:
+        """
+        :raises NotFoundError: если модели SocialAccount с указанными social_id и social_name несуществует
+        """
+        ...
+
+    def create_social_account(self, social_account: payload_models.SocialAccountPayload) -> layer_models.SocialAccount:
+        """
+        :raises UniqueConstraintError: если указанная одель с указанными данными уже существует
         """
         ...
 

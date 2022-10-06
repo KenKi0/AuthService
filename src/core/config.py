@@ -94,6 +94,13 @@ class SwaggerSettings(BaseConfig):
     API_URL: str = '/static/swagger.json'
 
 
+class OAuthSettings(BaseConfig):
+    CREDENTIALS: dict = {
+        'yandex': {'id': 'a69defc5e9a9414fa0411a436be2901a', 'secret': '4fbf4241b0fd408bb5ea2a16c64b11e2'},
+        'google': {'id': 'aornvioervo', 'secret': 'lakernveirodfe'},
+    }
+
+
 class PermissionSettings(Enum):
     User = 0
     Subscriber = 1
@@ -108,8 +115,9 @@ class ProjectSettings(BaseConfig):
     jwt: JWTSettings = JWTSettings()
     security: SecuritySettings = SecuritySettings()
     swagger: SwaggerSettings = SwaggerSettings()
+    permission: PermissionSettings = PermissionSettings
+    oauth: OAuthSettings = OAuthSettings()
     jaeger: JaegerSettings = JaegerSettings()
-    permission = PermissionSettings
     REQUEST_LIMIT_PER_MINUTE: int = 20
 
 

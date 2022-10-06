@@ -27,6 +27,7 @@ opentelemetry-api = "^1.13.0"
 opentelemetry-sdk = "^1.13.0"
 opentelemetry-instrumentation-flask = "^0.34b0"
 opentelemetry-exporter-jaeger = "^1.13.0"
+rauth = "^0.7.3"
 
 [tool.poetry.dev-dependencies]
 flake8-bugbear = "^22.6.22"

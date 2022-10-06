@@ -33,6 +33,38 @@
                 ]
             }
         },
+        "/api/v1/auth/register/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/register-callback/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    },
+                    "409": {
+                        "description": "Email is already in use or social account is already linked to another user"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
@@ -54,6 +86,35 @@
                     },
                     "401": {
                         "description": "User is not exist"
+                    },
+                    "403": {
+                        "description": "Permission denied"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/login/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/api/v1/auth/login-callback/{provider}": {
+            "post": {
+                "summary": "\u0412\u0445\u043e\u0434 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
                     }
                 },
                 "tags": [
@@ -738,11 +799,11 @@
             "Register": {
                 "type": "object",
                 "properties": {
-                    "username": {
+                    "email": {
                         "type": "string",
-                        "description": "name",
+                        "description": "email",
                         "required": true,
-                        "example": "TestUser"
+                        "example": "test_2@test.com"
                     },
                     "password": {
                         "type": "string",
@@ -750,11 +811,11 @@
                         "required": true,
                         "example": "Test_12345"
                     },
-                    "email": {
+                    "username": {
                         "type": "string",
-                        "description": "email",
+                        "description": "name",
                         "required": true,
-                        "example": "test_2@test.com"
+                        "example": "TestUser"
                     }
                 }
             },
@@ -778,17 +839,17 @@
             "ChangePassword": {
                 "type": "object",
                 "properties": {
-                    "old_password": {
-                        "type": "string",
-                        "description": "old_password",
-                        "required": true,
-                        "example": "Test_12345"
-                    },
                     "new_password": {
                         "type": "string",
                         "description": "new_password",
                         "required": true,
                         "example": "Test_67890"
+                    },
+                    "old_password": {
+                        "type": "string",
+                        "description": "old_password",
+                        "required": true,
+                        "example": "Test_12345"
                     }
                 }
             },
