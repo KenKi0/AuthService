@@ -63,16 +63,19 @@ class OAuthService:
 
     def __init__(
         self,
-        provider_name: str,
+        provider_name: settings.oauth.providers,
         db_repository: repo.UserRepositoryProtocol = db_repo,
         tm_storage_repository: repo.UserTmStorageRepositoryProtocol = tms_repo,
     ):
         self.db_repo = db_repository
         self.tms_repo = tm_storage_repository
-        self.provider_name = provider_name
+        self.provider_name = provider_name.value
         credentials = settings.oauth.CREDENTIALS.get(provider_name)
         self.consumer_id = credentials.get('id')
         self.consumer_secret = credentials.get('secret')
+        self.authorize_url = credentials.get('authorize_url')
+        self.access_token_url = credentials.get('access_token_url')
+        self.base_url = credentials.get('base_url')
 
     def get_callback_url(self, handle_name: str):
         return url_for('auth.' + handle_name, provider=self.provider_name, _external=True)
@@ -155,14 +158,14 @@ class OAuthService:
 
 class YandexOAuth(OAuthSubclassesProtocol, OAuthService):
     def __init__(self):
-        super(YandexOAuth, self).__init__('yandex')
+        super(YandexOAuth, self).__init__(settings.oauth.providers.yandex)
         self.service = OAuth2Service(
-            name='yandex',
+            name=self.provider_name,
             client_id=self.consumer_id,
             client_secret=self.consumer_secret,
-            authorize_url='https://oauth.yandex.ru/authorize',
-            access_token_url='https://oauth.yandex.ru/token',
-            base_url='https://login.yandex.ru/info',
+            authorize_url=self.authorize_url,
+            access_token_url=self.access_token_url,
+            base_url=self.base_url,
         )
 
     def authorize(self, handle_name: str) -> Response:

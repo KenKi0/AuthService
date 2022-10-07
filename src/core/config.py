@@ -94,11 +94,25 @@ class SwaggerSettings(BaseConfig):
     API_URL: str = '/static/swagger.json'
 
 
+class OAuthProviders(Enum):
+    yandex = 'yandex'
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
+
 class OAuthSettings(BaseConfig):
     CREDENTIALS: dict = {
-        'yandex': {'id': 'a69defc5e9a9414fa0411a436be2901a', 'secret': '4fbf4241b0fd408bb5ea2a16c64b11e2'},
-        'google': {'id': 'aornvioervo', 'secret': 'lakernveirodfe'},
+        OAuthProviders.yandex.value: {
+            'id': 'a69defc5e9a9414fa0411a436be2901a',
+            'secret': '4fbf4241b0fd408bb5ea2a16c64b11e2',
+            'base_url': 'https://login.yandex.ru/info',
+            'access_token_url': 'https://oauth.yandex.ru/token',
+            'authorize_url': 'https://oauth.yandex.ru/authorize',
+        },
     }
+    providers: OAuthProviders = OAuthProviders
 
 
 class PermissionSettings(Enum):
@@ -118,6 +132,7 @@ class ProjectSettings(BaseConfig):
     permission: PermissionSettings = PermissionSettings
     oauth: OAuthSettings = OAuthSettings()
     jaeger: JaegerSettings = JaegerSettings()
+    enable_tracer: bool = True
     REQUEST_LIMIT_PER_MINUTE: int = 20
 
 
