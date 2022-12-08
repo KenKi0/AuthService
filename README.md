@@ -1,6 +1,3 @@
-Ссылка на [проект](https://github.com/KenKi2002/Auth_sprint_1)  
-Ссылка на [AsyncAPI](https://github.com/KenKi2002/Async_API_sprint_1)
-
 ## Работа с проектом
 
 ### Запуск приложения локально
